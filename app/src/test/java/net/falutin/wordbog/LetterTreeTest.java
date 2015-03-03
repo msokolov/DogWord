@@ -10,14 +10,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringReader;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by sokolov on 3/1/2015.
- */
 public class LetterTreeTest {
 
     @Test
@@ -35,8 +31,7 @@ public class LetterTreeTest {
 
     public static String getWordFilePath() {
         final String pwd = System.getProperty("user.dir");
-        final String path = pwd + "/app/src/test/resources/WORDS";
-        return path;
+        return pwd + "/src/test/resources/WORDS500";
     }
 
     public static LetterTree readLetterTree () throws IOException {

@@ -4,13 +4,13 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
+ * Lays out grid cells dynamically and supports grid path selection
  * Created by sokolov on 2/28/2015.
  */
 public class CellGridLayout extends RelativeLayout implements Char2d {
@@ -43,10 +43,10 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
             final TextView cell = getCell(i);
             int row = i / dim;
             int col = i % dim;
-            // TODO: more precise selection area on grid; position instead of resizing
             cell.setBackgroundColor(normalBackground);
-            cell.setPadding(0, cellSize/4, 0, 0);
-            cell.layout(col * cellSize, row * cellSize, (col+1) * cellSize, (row+1) * cellSize);
+            // cell.setPadding(0, cellSize/6, 0, 0);
+            cell.layout(col * cellSize + cellSize/6, row * cellSize + cellSize/6,
+                    (col+1) * cellSize - cellSize/6, (row+1) * cellSize - cellSize/6);
         }
     }
 

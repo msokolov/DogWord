@@ -1,22 +1,14 @@
 package net.falutin.wordbog;
 
-import android.content.res.Resources;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.Layout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.GridLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -44,7 +36,8 @@ public class BogWord extends ActionBarActivity {
         // TODO: implement onSaveInstanceState() and save all the stuff there
         try {
             // load the dictionary
-            // TODO: filter out rare words; use a smaller dictionary
+            // Our dictionary is WORDS trimmed down to words that occurred at least 500 times
+            // in the Google Books corpus in 2008.
             if (words == null) {
                 words = LetterTree.read(new DataInputStream(getResources().openRawResource(R.raw.words)));
             }

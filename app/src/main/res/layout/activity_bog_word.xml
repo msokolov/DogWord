@@ -7,7 +7,8 @@
     a:paddingTop="@dimen/activity_vertical_margin"
     a:paddingBottom="@dimen/activity_vertical_margin"
     a:orientation="vertical"
-    tools:context=".BogWord">
+    tools:context=".BogWord"
+    a:background="@android:color/background_dark">
     <net.falutin.wordbog.CellGridLayout
         a:layout_width="match_parent"
         a:layout_height="300dp"
@@ -18,7 +19,8 @@
             a:layout_height="@dimen/abc_text_size_display_1_material"
             a:textAppearance="?android:attr/textAppearanceLarge"
             a:textSize="@dimen/abc_text_size_display_1_material"
-            a:gravity="center" />
+            a:gravity="center"
+            a:background="@color/background_material_dark" />
 
         <TextView
             a:layout_width="@dimen/abc_text_size_display_1_material"
@@ -130,11 +132,15 @@
     <TextView
         a:id="@+id/display"
         a:layout_width="match_parent"
-        a:layout_height="96sp" />
+        a:layout_height="96sp"
+        a:textColor="#fffff8ce"
+        a:background="@android:color/background_dark" />
 
     <TextView
         a:id="@+id/progress"
         a:layout_width="96sp"
-        a:layout_height="48sp" />
+        a:layout_height="48sp"
+        a:textColor="#fffff8ce"
+        a:background="@android:color/background_dark" />
 
 </LinearLayout>
