@@ -14,7 +14,7 @@ public class GridWordFinderTest {
 
     @Test
     public void testFindWords () throws IOException {
-        LetterTree tree = LetterTreeTest.readLetterTree();
+        LetterTree tree = LetterTreeTest.readLetterTree(false);
         TestGrid grid = new TestGrid("ABCDEFGHIJKLMNOP");
         GridWordFinder finder = new GridWordFinder(tree);
         Set<String> words = finder.findWords(grid);

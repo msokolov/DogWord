@@ -50,6 +50,10 @@ public class LetterTree {
         nodes = new int[Math.max(capacity, 256)];
     }
 
+    public int getNodeCount() {
+        return count;
+    }
+
     public boolean contains (CharSequence letters) {
         return (lookup(letters) & IS_WORD) == 1;
     }

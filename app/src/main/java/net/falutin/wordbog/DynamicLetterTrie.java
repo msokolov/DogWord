@@ -25,12 +25,17 @@ public class DynamicLetterTrie {
         BufferedReader inb = new BufferedReader(in);
         String line;
         while ((line = inb.readLine()) != null) {
-            Node.add(line, root);
+            root.add(line);
         }
     }
 
     public Node getRoot () {
         return root;
+    }
+
+    /** Converts the tree into a DAG by merging identical suffixes */
+    public void collapseSuffixes () {
+        root.collapse (new StringBuilder(), new HashMap<CharSequence,Node>());
     }
 
     public static class Node {
@@ -42,17 +47,18 @@ public class DynamicLetterTrie {
             isTerminal = false;
         }
 
-        void add(String s, Node node) {
+        void add(String s) {
+            Node node = this;
             for (int i = 0; i < s.length(); i++) {
                 char c = s.charAt(i);
-                Node child = children.get(c);
+                Node child = node.children.get(c);
                 if (child == null) {
                     child = new Node();
-                    children.put(c, child);
+                    node.children.put(c, child);
                 }
                 node = child;
             }
-            isTerminal = true;
+            node.isTerminal = true;
         }
 
         /**
@@ -61,32 +67,44 @@ public class DynamicLetterTrie {
          * @param suff partial suffix built up while descending unique branches of the tree
          * @return the number of terminal nodes (ie words) on this branch
          */
-        int collapse (StringBuilder suff, Map<CharSequence, Node> suffixMap) {
-            // TODO -- figure out how to accumulate suffixes efficiently
-            // perhaps passing in a StringBuilder
+        int collapse (StringBuilder suff, Map<CharSequence,Node> suffixMap) {
             int terminalCount = isTerminal ? 1 : 0;
             if (children.size() == 1) {
                 Map.Entry<Character,Node> child = children.firstEntry();
                 suff.append (child.getKey());
                 terminalCount += child.getValue().collapse (suff, suffixMap);
             } else if (children.size() > 1) {
-                for (Map.Entry<Character,Node> child = children.entrySet()) {
-                    terminalCount += child.getValue().collapse (child.getKey(), suff);
-                    suff.setLength(0);
-                }
-            }
-            if (terminalCount == 1) {
-                addOrCollapse (suff.toString(), suffixMap);
+                terminalCount += collapseChildren(suff, suffixMap);
             }
             return terminalCount;
         }
 
-    }
+        private int collapseChildren(StringBuilder suff, Map<CharSequence, Node> suffixMap) {
+            int terminalCount = 0;
+            TreeMap<Character, Node> collapsed = null;
+            for (Map.Entry<Character,Node> child : children.entrySet()) {
+                char c = child.getKey();
+                suff.append(c);
+                int childTerminalCount = child.getValue().collapse (suff, suffixMap);
+                if (childTerminalCount == 1) {
+                    if (suffixMap.containsKey(suff)) {
+                        if (collapsed == null) {
+                            collapsed = new TreeMap<>(children);
+                        }
+                        collapsed.put(c, suffixMap.get(suff));
+                    } else {
+                        suffixMap.put (suff, child.getValue());
+                    }
+                }
+                terminalCount += childTerminalCount;
+                suff.setLength(0);
+            }
+            if (collapsed != null) {
+                children = collapsed;
+            }
+            return terminalCount;
+        }
 
-    /** Converts the tree into a DAG by merging identical suffixes */
-    public void collapseSuffixes () {
-        HashMap<CharSequence,Node> suffixMap = new HashMap<>();
-        root.collapse (suffixMap);
     }
 
 }
