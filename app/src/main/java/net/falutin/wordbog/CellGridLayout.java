@@ -1,8 +1,7 @@
 package net.falutin.wordbog;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -14,20 +13,16 @@ import android.widget.TextView;
  * Lays out grid cells dynamically and supports grid path selection
  * Created by sokolov on 2/28/2015.
  */
-public class CellGridLayout extends RelativeLayout implements Char2d {
+public class CellGridLayout extends RelativeLayout {
 
-    private int cellSize;
+    private int cellSize = 0;
     private int dim;
-    // private Drawable selectedBackground, normalBackground;
+    private CellGrid grid;
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
 
     public CellGridLayout (Context context, AttributeSet attrs) {
         super (context, attrs);
-        // selectedBackground = getResources().getDrawable(R.drawable.selected_tile_bg);
-        // normalBackground = getResources().getDrawable(R.drawable.tile_bg);
-        //Log.d(BogWord.TAG, "selectedBackground color=" + selectedBackground);
-        //Log.d(BogWord.TAG, "normalBackground color=" + normalBackground);
     }
 
     @Override
@@ -45,41 +40,11 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
             cell.layout(col * cellSize + cellSize/6, row * cellSize + cellSize/6,
                     (col+1) * cellSize - cellSize/6, (row+1) * cellSize - cellSize/6);
         }
-    }
-
-    public void randomize() {
-        for (int i = getChildCount()-1; i >= 0; i--) {
-            getCell(i).setText(getRandomChar());
-        }
-    }
-
-    @Override
-    public int width() {
-        return dim;
-    }
-
-    @Override
-    public int height() {
-        return dim;
-    }
-
-    @Override
-    public char get(int row, int col) {
-        return getCell(row, col).getText().charAt(0);
-    }
-
-    private TextView getCell (int row, int col) {
-        return (TextView) getChildAt(row * dim + col);
+        setGrid(grid); // copy the letters into the text cells
     }
 
     private TextView getCell (int idx) {
         return (TextView) getChildAt(idx);
-    }
-
-    private CharSequence getRandomChar() {
-        // TODO: weight distribution by english letter frequencies
-        char [] c = Character.toChars('A' + (int)(Math.random() * 26));
-        return new String(c);
     }
 
     public int getSelectedCellIndex(MotionEvent event) {
@@ -95,7 +60,7 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(@NonNull MotionEvent event) {
         int cellIndex = getSelectedCellIndex(event);
         if (cellIndex < 0) {
             return false;
@@ -135,7 +100,7 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
     public String finishPath() {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < pathLength; i++) {
-            buf.append(getCellText(cellPath[i]));
+            buf.append(grid.get(cellPath[i]));
         }
         return buf.toString();
     }
@@ -154,17 +119,28 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
             Log.w(DogWord.TAG, "cell index out of bounds in selectCell: " + cellIndex);
         }
     }
-
+    // TODO: draw a line connecting two cells
+    /*
     public void connectCells (int fromCellIndex, int toCellIndex) {
-        // TODO: draw a line connecting two cells
+    }
+    */
+
+    public CellGrid getGrid() {
+        return grid;
     }
 
-    public CharSequence getCellText(int cellIndex) {
-        TextView cell = getCell(cellIndex);
-        if (cell != null) {
-            return cell.getText();
+    public void setGrid(CellGrid grid) {
+        this.grid = grid;
+        if (cellSize == 0) {
+            // onLayout not yet called
+            return;
         }
-        Log.w(DogWord.TAG, "cell index out of bounds in getCellText: " + cellIndex);
-        return "";
+        for (int row = 0; row < grid.height(); row++) {
+            for (int col = 0; col < grid.width(); col++) {
+                TextView cell = getCell(row * grid.width() + col);
+                cell.setText(new String(new char[]{grid.get(row, col)}));
+            }
+        }
     }
+
 }

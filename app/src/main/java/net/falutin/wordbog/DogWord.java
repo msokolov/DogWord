@@ -19,7 +19,7 @@ public class DogWord extends ActionBarActivity {
 
     public static final String TAG = "BogWord";
 
-    private CellGridLayout grid;
+    private CellGridLayout gridLayout;
     private TextView displayArea;
     private TextView progressArea;
     private ScrollView scrollView;
@@ -33,7 +33,7 @@ public class DogWord extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bog_word);
-        grid = (CellGridLayout) findViewById(R.id.grid);
+        gridLayout = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
         scrollView = (ScrollView) findViewById(R.id.scroller);
         progressArea = (TextView) findViewById(R.id.progress);
@@ -50,8 +50,6 @@ public class DogWord extends ActionBarActivity {
         }
         wordFinder = new GridWordFinder(words);
         wordsFound = new HashSet<>();
-        // FIXME: separate grid data from grid UI and initialize game state independently
-        // of onLayout (so that progress view is updated correctly).
         onNewGame();
     }
 
@@ -91,7 +89,9 @@ public class DogWord extends ActionBarActivity {
     }
 
     public void onNewGame () {
+        CellGrid grid = new CellGrid(4, 4);
         grid.randomize();
+        gridLayout.setGrid (grid);
         displayArea.setText("");
         wordsFound.clear();
         numWordsToFind = wordFinder.findWords(grid).size();
@@ -111,7 +111,7 @@ public class DogWord extends ActionBarActivity {
             return false;
         }
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-            String word = grid.finishPath();
+            String word = gridLayout.finishPath();
             if (word.length() >= 3) {
                 if (words.contains(word.toLowerCase()) && !wordsFound.contains(word)) {
                     wordsFound.add(word);
@@ -124,7 +124,7 @@ public class DogWord extends ActionBarActivity {
                     updateProgress();
                 }
             }
-            grid.clearSelection();
+            gridLayout.clearSelection();
             return true;
         }
         return false;
@@ -132,7 +132,7 @@ public class DogWord extends ActionBarActivity {
 
     private void showWordsNotFound() {
         displayArea.setText(displayArea.getText() + "\n +");
-        for (String word : wordFinder.findWords(grid)) {
+        for (String word : wordFinder.findWords(gridLayout.getGrid())) {
             word = word.toUpperCase();
             if (!wordsFound.contains(word)) {
                 displayArea.setText(displayArea.getText() + " " + word);
