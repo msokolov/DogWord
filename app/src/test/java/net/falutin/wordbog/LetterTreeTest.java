@@ -37,9 +37,10 @@ public class LetterTreeTest {
         assertWordsFound(tree);
         assertEquals(20, tree.getNodeCount());
         trie.collapseSuffixes();
-        tree = LetterTree.build(trie);
+        tree = LetterTree.buildDAG(trie);
         assertWordsFound(tree);
-        assertEquals(14, tree.getNodeCount());
+        // it's really a count of edges
+        assertEquals(16, tree.getNodeCount());
     }
 
     private void assertWordsFound (LetterTree tree) {
@@ -69,13 +70,14 @@ public class LetterTreeTest {
         reader.close();
         if (collapse) {
             dlt.collapseSuffixes();
+            return LetterTree.buildDAG(dlt);
         }
         return LetterTree.build(dlt);
     }
 
     @Test
     public void testReadWrite() throws IOException {
-        LetterTree tree = readLetterTree(false);
+        LetterTree tree = readLetterTree(true);
         assertEquals(3, tree.lookup("encyclical"));
         assertEquals(2, tree.lookup("encycli"));
         assertEquals(0, tree.lookup("encyclion"));
@@ -83,6 +85,7 @@ public class LetterTreeTest {
         // WORD gzips to 445K.  We should be able to get much better compression using
         // an finite-state automaton that collapses suffixes as well, and squeezes out
         // some extra fat from the micro-data representation
+        // WORDS500 = 761675, WORDS500.bin (as a tree) = 799700, (as a DAG) = 573346
         final String binPath = getWordFilePath() + ".bin";
         DataOutputStream out = new DataOutputStream(new FileOutputStream(binPath));
         tree.write(out);

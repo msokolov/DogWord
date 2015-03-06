@@ -9,10 +9,8 @@ import java.util.Arrays;
 
 /**
  * LetterTree provides fast lookup of word prefixes in a compact data structure. It is essentially
- * a prefix tree (trie), optimized for storing a tree of 1-byte letters in small space with fast
- * lookup.  TODO: optimize LetterTree storage:
- * 1) implement a radix trie by collapsing one-child non-terminals
- * 2) implement an automaton DAG by collapsing common suffixes
+ * a prefix tree (trie) or DAG, optimized for storing a tree of 1-byte letters in small space with fast
+ * lookup.
  * Created by sokolov on 3/1/2015.
  */
 public class LetterTree {
@@ -118,6 +116,40 @@ public class LetterTree {
         letterTree.build(trie.getRoot(), 0);
         letterTree.shrink();
         return letterTree;
+    }
+
+    public static LetterTree buildDAG (DynamicLetterTrie trie) {
+        // recursively build the tree by adding all the nodes and setting references while
+        // unwinding the recursion
+        int nodeCount = trie.collapseSuffixes();
+        LetterTree letterTree = new LetterTree();
+        int idMap[] = new int[nodeCount];
+        letterTree.buildDAG(trie.getRoot(), 0, idMap);
+        letterTree.shrink();
+        return letterTree;
+    }
+
+    private int buildDAG (DynamicLetterTrie.Node node, int offset, int[] idMap) {
+        int nChildren = node.children.size();
+        // allocate space for the children of this node
+        addNodeStorage(nChildren);
+        // and set the node pointer in the following empty space
+        int nextOffset = offset + nChildren;
+        int childIndex = 0;
+        for (Character c : node.children.keySet()) {
+            DynamicLetterTrie.Node child = node.children.get(c);
+            // store zero as the firstChildOffset if this child has no children
+            int nextChildOffset = idMap[child.id];
+            //System.out.println(String.format ("%c %d %d %d=>%d", c, offset + childIndex, nextOffset, child.id, nextChildOffset));
+            if (nextChildOffset == 0 && !child.children.isEmpty()) {
+                // store the child, as represented by its grandchildren
+                nextChildOffset = idMap[child.id] = nextOffset;
+                nextOffset = buildDAG(child, nextOffset, idMap);
+            }
+            nodes[offset + childIndex] = encodeNode(c, nextChildOffset, childIndex == nChildren-1, child.isTerminal);
+            ++childIndex;
+        }
+        return nextOffset;
     }
 
     private int build (DynamicLetterTrie.Node node, int offset) {
