@@ -2,6 +2,7 @@ package net.falutin.wordbog;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,14 +18,14 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
 
     private int cellSize;
     private int dim;
-    private int selectedBackground, normalBackground;
+    // private Drawable selectedBackground, normalBackground;
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
 
     public CellGridLayout (Context context, AttributeSet attrs) {
         super (context, attrs);
-        selectedBackground = Color.LTGRAY; // getResources().getColor(R.color.dim_foreground_material_light);
-        normalBackground = getResources().getColor(R.color.background_material_light);
+        // selectedBackground = getResources().getDrawable(R.drawable.selected_tile_bg);
+        // normalBackground = getResources().getDrawable(R.drawable.tile_bg);
         //Log.d(BogWord.TAG, "selectedBackground color=" + selectedBackground);
         //Log.d(BogWord.TAG, "normalBackground color=" + normalBackground);
     }
@@ -36,14 +37,10 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
         int childCount = getChildCount();
         dim = (int) Math.sqrt(childCount);
         cellSize = size / dim;
-        // TODO: improve look and feel generally
-        // TODO rounded corners / boxes for grid cells
-        // TODO icon
         for (int i = childCount-1; i >= 0; i--) {
             final TextView cell = getCell(i);
             int row = i / dim;
             int col = i % dim;
-            cell.setBackgroundColor(normalBackground);
             // cell.setPadding(0, cellSize/6, 0, 0);
             cell.layout(col * cellSize + cellSize/6, row * cellSize + cellSize/6,
                     (col+1) * cellSize - cellSize/6, (row+1) * cellSize - cellSize/6);
@@ -144,7 +141,8 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
 
     public void clearSelection () {
         for (int i = getChildCount() - 1; i >= 0; i--) {
-            getChildAt(i).setBackgroundColor(normalBackground);
+
+            getChildAt(i).setBackgroundResource(R.drawable.tile_bg);
         }
     }
 
@@ -152,10 +150,10 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
         View child = getChildAt(cellIndex);
         if (child != null) {
             //child.setPressed(true);
-            child.setBackgroundColor(selectedBackground);
+            child.setBackgroundResource(R.drawable.selected_tile_bg);
             // Log.d(BogWord.TAG, "selectCell " + cellIndex);
         } else {
-            Log.w(BogWord.TAG, "cell index out of bounds in selectCell: " + cellIndex);
+            Log.w(DogWord.TAG, "cell index out of bounds in selectCell: " + cellIndex);
         }
     }
 
@@ -168,7 +166,7 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
         if (cell != null) {
             return cell.getText();
         }
-        Log.w(BogWord.TAG, "cell index out of bounds in getCellText: " + cellIndex);
+        Log.w(DogWord.TAG, "cell index out of bounds in getCellText: " + cellIndex);
         return "";
     }
 }
