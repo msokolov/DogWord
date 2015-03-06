@@ -123,7 +123,8 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
         for (int i = pathLength-1; i >= 0; i--) {
             // this cell is already selected
             if (cellPath[i] == cellIndex) {
-                // TODO: if i == pathLength - 2, then un-select the last cell
+                // TODO: if i == pathLength - 2, then un-select the last cell?
+                // not if we want implement Boggle-style rules
                 return;
             }
         }
@@ -141,7 +142,6 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
 
     public void clearSelection () {
         for (int i = getChildCount() - 1; i >= 0; i--) {
-
             getChildAt(i).setBackgroundResource(R.drawable.tile_bg);
         }
     }
@@ -149,9 +149,7 @@ public class CellGridLayout extends RelativeLayout implements Char2d {
     public void selectCell (int cellIndex) {
         View child = getChildAt(cellIndex);
         if (child != null) {
-            //child.setPressed(true);
             child.setBackgroundResource(R.drawable.selected_tile_bg);
-            // Log.d(BogWord.TAG, "selectCell " + cellIndex);
         } else {
             Log.w(DogWord.TAG, "cell index out of bounds in selectCell: " + cellIndex);
         }

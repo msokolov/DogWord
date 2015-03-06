@@ -33,13 +33,19 @@
 
     </net.falutin.wordbog.CellGridLayout>
 
-    <TextView
-        a:id="@+id/display"
-        a:layout_width="match_parent"
+    <ScrollView
+        a:id="@+id/scroller"
+        a:layout_width="fill_parent"
         a:layout_height="96sp"
-        a:textColor="#fffff8ce"
-        a:background="@android:color/background_dark" />
-
+        a:scrollbars="vertical"
+        a:fillViewport="true">
+      <TextView
+          a:id="@+id/display"
+          a:layout_width="match_parent"
+          a:layout_height="wrap_content"
+          a:textColor="#fffff8ce"
+          a:background="@android:color/background_dark" />
+    </ScrollView>
     <TextView
         a:id="@+id/progress"
         a:layout_width="96sp"

@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.io.DataInputStream;
@@ -20,6 +22,7 @@ public class DogWord extends ActionBarActivity {
     private CellGridLayout grid;
     private TextView displayArea;
     private TextView progressArea;
+    private ScrollView scrollView;
     private LetterTree words;
     private GridWordFinder wordFinder;
     private HashSet<String> wordsFound;
@@ -32,6 +35,7 @@ public class DogWord extends ActionBarActivity {
         setContentView(R.layout.activity_bog_word);
         grid = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
+        scrollView = (ScrollView) findViewById(R.id.scroller);
         progressArea = (TextView) findViewById(R.id.progress);
         // TODO: implement onSaveInstanceState() and save all the stuff there
         try {
@@ -70,8 +74,10 @@ public class DogWord extends ActionBarActivity {
                 onNewGame();
                 return true;
             case R.id.game_over:
-                gameOver = true;
-                showWordsNotFound();
+                if (!gameOver) {
+                    gameOver = true;
+                    showWordsNotFound();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -107,12 +113,11 @@ public class DogWord extends ActionBarActivity {
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
             String word = grid.finishPath();
             if (word.length() >= 3) {
-                Log.d(DogWord.TAG, "lookup " + word);
                 if (words.contains(word.toLowerCase()) && !wordsFound.contains(word)) {
-                    Log.d(DogWord.TAG, "found " + word);
                     wordsFound.add(word);
                     if (wordsFound.size() > 1) {
                         displayArea.setText(displayArea.getText() + " " + word);
+                        scrollView.fullScroll(View.FOCUS_DOWN);
                     } else {
                         displayArea.setText(word);
                     }
@@ -127,12 +132,12 @@ public class DogWord extends ActionBarActivity {
 
     private void showWordsNotFound() {
         displayArea.setText(displayArea.getText() + "\n +");
-        // TODO: hide or shrink the grid?  Do something to show all the words ...
         for (String word : wordFinder.findWords(grid)) {
             word = word.toUpperCase();
             if (!wordsFound.contains(word)) {
                 displayArea.setText(displayArea.getText() + " " + word);
             }
         }
+        scrollView.fullScroll(View.FOCUS_DOWN);
     }
 }
