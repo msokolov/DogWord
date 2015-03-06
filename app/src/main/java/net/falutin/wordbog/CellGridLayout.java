@@ -1,6 +1,8 @@
 package net.falutin.wordbog;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -20,9 +22,12 @@ public class CellGridLayout extends RelativeLayout {
     private CellGrid grid;
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
+    private Paint paint;
 
     public CellGridLayout (Context context, AttributeSet attrs) {
         super (context, attrs);
+        paint = new Paint();
+        paint.setColor(0xffffdd);
     }
 
     @Override
@@ -77,6 +82,18 @@ public class CellGridLayout extends RelativeLayout {
         return false;
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        // FIXME - line drawing
+        super.onDraw(canvas);
+        for (int i = 0; i < pathLength - 1; i++) {
+            canvas.drawLine(((i % dim + 0.5f) * cellSize), (i / dim + 0.5f) * cellSize,
+                    ((i+1) % dim + 0.5f) * cellSize, ((i+1) / dim + 0.5f) * cellSize,
+                    paint);
+        }
+    }
+
+
     private void initPath(int cellIndex) {
         cellPath[0] = (byte) cellIndex;
         pathLength = 1;
@@ -115,6 +132,7 @@ public class CellGridLayout extends RelativeLayout {
         View child = getChildAt(cellIndex);
         if (child != null) {
             child.setBackgroundResource(R.drawable.selected_tile_bg);
+            //invalidate();
         } else {
             Log.w(DogWord.TAG, "cell index out of bounds in selectCell: " + cellIndex);
         }
