@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.HashSet;
 
 
-public class BogWord extends ActionBarActivity {
+public class DogWord extends ActionBarActivity {
 
     public static final String TAG = "BogWord";
 
@@ -95,7 +95,7 @@ public class BogWord extends ActionBarActivity {
 
     public void updateProgress() {
         String status = String.format("%d/%d", wordsFound.size(), numWordsToFind);
-        Log.d(BogWord.TAG, "progress: " + status);
+        Log.d(DogWord.TAG, "progress: " + status);
         progressArea.setText(status);
     }
 
@@ -107,9 +107,9 @@ public class BogWord extends ActionBarActivity {
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
             String word = grid.finishPath();
             if (word.length() >= 3) {
-                Log.d(BogWord.TAG, "lookup " + word);
+                Log.d(DogWord.TAG, "lookup " + word);
                 if (words.contains(word.toLowerCase()) && !wordsFound.contains(word)) {
-                    Log.d(BogWord.TAG, "found " + word);
+                    Log.d(DogWord.TAG, "found " + word);
                     wordsFound.add(word);
                     if (wordsFound.size() > 1) {
                         displayArea.setText(displayArea.getText() + " " + word);
