@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.splunk.mint.Mint;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.HashSet;
@@ -32,6 +34,13 @@ public class DogWord extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 854b552a43ef65ffd873779
+        // 7de6e2e0
+        //Mint.initAndStartSession(this, "854b552a43ef65ffd873779");
+        // Mint.initAndStartSession(DogWord.this, "39338683");
+        Mint.initAndStartSession(this, "7de6e2e0");
+        Mint.logEvent("Hello, World!" +
+                "");
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
