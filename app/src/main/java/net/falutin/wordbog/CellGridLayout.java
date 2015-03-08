@@ -57,8 +57,8 @@ public class CellGridLayout extends RelativeLayout {
         int col = (int) event.getX() / cellSize;
         double dr = (event.getY() - (row + 0.5) * cellSize);
         double dc = (event.getX() - (col + 0.5) * cellSize);
-        if (dr*dr + dc*dc > cellSize*cellSize/4) {
-            // the "hot" area is the circle of radius cellSize/2 inscribed within each cell
+        if (dr*dr + dc*dc > cellSize*cellSize/9) {
+            // the "hot" area is the circle of radius cellSize/3 inscribed within each cell
             return -1;
         }
         return row * dim + col;
@@ -67,7 +67,7 @@ public class CellGridLayout extends RelativeLayout {
     @Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         int cellIndex = getSelectedCellIndex(event);
-        if (cellIndex < 0) {
+        if (cellIndex < 0 || cellIndex >= dim*dim) {
             return false;
         }
         switch(event.getActionMasked()) {
@@ -102,6 +102,7 @@ public class CellGridLayout extends RelativeLayout {
     }
 
     private void addPath(int cellIndex) {
+        assert(cellIndex < dim*dim);
         for (int i = pathLength-1; i >= 0; i--) {
             // this cell is already selected
             if (cellPath[i] == cellIndex) {
