@@ -13,7 +13,7 @@
         a:layout_width="match_parent"
         a:layout_height="300dp"
         a:id="@+id/grid">
-
+        <!-- Note: must have NxN text views as first children -->
         <TextView style="@style/Tile" />
         <TextView style="@style/Tile" />
         <TextView style="@style/Tile" />
@@ -30,6 +30,10 @@
         <TextView style="@style/Tile" />
         <TextView style="@style/Tile" />
         <TextView style="@style/Tile" />
+        <view a:layout_width="match_parent" a:layout_height="300dp"
+            class="net.falutin.wordbog.CanvasView"
+            a:id="@+id/canvas"
+            a:background="#00000000"/>
 
     </net.falutin.wordbog.CellGridLayout>
 

@@ -16,7 +16,15 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.HashSet;
 
-
+/**
+ * Word search game. Run your finger over the letters and find all the words.
+ * TODO: prune dictionary
+ * TODO: create objectives, timing (add score and time for each word found)
+ * TODO: More even letter distribution
+ * TODO: visual feedback on found word (flash the word brightly), already found word (dim the word)
+ * TODO: expand selection area when no path selected
+ * TODO: Make a nicer line color, add rounded caps
+ */
 public class DogWord extends ActionBarActivity {
 
     public static final String TAG = "BogWord";
@@ -25,6 +33,7 @@ public class DogWord extends ActionBarActivity {
     private TextView displayArea;
     private TextView progressArea;
     private ScrollView scrollView;
+    private CanvasView canvasView;
     private LetterTree words;
     private GridWordFinder wordFinder;
     private HashSet<String> wordsFound;
@@ -38,14 +47,16 @@ public class DogWord extends ActionBarActivity {
         // 7de6e2e0
         //Mint.initAndStartSession(this, "854b552a43ef65ffd873779");
         // Mint.initAndStartSession(DogWord.this, "39338683");
-        Mint.initAndStartSession(this, "7de6e2e0");
-        Mint.logEvent("Hello, World!" +
-                "");
+        // Mint.initAndStartSession(this, "7de6e2e0");
+        // Mint.logEvent("Hello, World!");
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
         scrollView = (ScrollView) findViewById(R.id.scroller);
         progressArea = (TextView) findViewById(R.id.progress);
+        canvasView = (CanvasView) findViewById(R.id.canvas);
+        gridLayout.setCanvasView(canvasView);
+
         // TODO: implement onSaveInstanceState() and save all the stuff there
         try {
             // load the dictionary

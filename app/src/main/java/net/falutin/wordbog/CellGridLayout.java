@@ -20,24 +20,25 @@ public class CellGridLayout extends RelativeLayout {
     private int cellSize = 0;
     private int dim;
     private CellGrid grid;
+    private CanvasView canvasView;
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
-    private Paint paint;
 
     public CellGridLayout (Context context, AttributeSet attrs) {
         super (context, attrs);
-        paint = new Paint();
-        paint.setColor(0xffffdd);
+        for (int i = 0; i < cellPath.length; i++) {
+            cellPath[i] = -1;
+        }
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int size = Math.min(r - l, b - t);
-        // fill the grid with random ASCII (uppercase) letters
+        // The first N^2 children are the grid cells
         int childCount = getChildCount();
         dim = (int) Math.sqrt(childCount);
         cellSize = size / dim;
-        for (int i = childCount-1; i >= 0; i--) {
+        for (int i = dim * dim - 1; i >= 0; i--) {
             final TextView cell = getCell(i);
             int row = i / dim;
             int col = i % dim;
@@ -46,6 +47,12 @@ public class CellGridLayout extends RelativeLayout {
                     (col+1) * cellSize - cellSize/6, (row+1) * cellSize - cellSize/6);
         }
         setGrid(grid); // copy the letters into the text cells
+        canvasView.layout(l, t, r, b);
+        canvasView.setDimensions(dim, cellSize, cellPath);
+    }
+
+    public void setCanvasView(CanvasView canvasView) {
+        this.canvasView = canvasView;
     }
 
     private TextView getCell (int idx) {
@@ -82,20 +89,9 @@ public class CellGridLayout extends RelativeLayout {
         return false;
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        // FIXME - line drawing
-        super.onDraw(canvas);
-        for (int i = 0; i < pathLength - 1; i++) {
-            canvas.drawLine(((i % dim + 0.5f) * cellSize), (i / dim + 0.5f) * cellSize,
-                    ((i+1) % dim + 0.5f) * cellSize, ((i+1) / dim + 0.5f) * cellSize,
-                    paint);
-        }
-    }
-
-
     private void initPath(int cellIndex) {
         cellPath[0] = (byte) cellIndex;
+        cellPath[1] = -1;
         pathLength = 1;
         clearSelection();
         selectCell(cellIndex);
@@ -112,7 +108,9 @@ public class CellGridLayout extends RelativeLayout {
             }
         }
         cellPath[pathLength++] = (byte) cellIndex;
+        cellPath[pathLength] = -1;
         selectCell(cellIndex);
+        canvasView.invalidate(); // TODO: limit area
     }
 
     public String finishPath() {
@@ -120,11 +118,14 @@ public class CellGridLayout extends RelativeLayout {
         for (int i = 0; i < pathLength; i++) {
             buf.append(grid.get(cellPath[i]));
         }
+        pathLength = 0;
+        cellPath[0] = -1;
+        canvasView.invalidate(); // TODO: limit area
         return buf.toString();
     }
 
     public void clearSelection () {
-        for (int i = getChildCount() - 1; i >= 0; i--) {
+        for (int i = dim * dim - 1; i >= 0; i--) {
             getChildAt(i).setBackgroundResource(R.drawable.tile_bg);
         }
     }
@@ -133,16 +134,10 @@ public class CellGridLayout extends RelativeLayout {
         View child = getChildAt(cellIndex);
         if (child != null) {
             child.setBackgroundResource(R.drawable.selected_tile_bg);
-            //invalidate();
         } else {
             Log.w(DogWord.TAG, "cell index out of bounds in selectCell: " + cellIndex);
         }
     }
-    // TODO: draw a line connecting two cells
-    /*
-    public void connectCells (int fromCellIndex, int toCellIndex) {
-    }
-    */
 
     public CellGrid getGrid() {
         return grid;
