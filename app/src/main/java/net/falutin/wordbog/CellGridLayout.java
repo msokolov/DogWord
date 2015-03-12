@@ -46,7 +46,9 @@ public class CellGridLayout extends RelativeLayout {
             cell.layout(col * cellSize + cellSize/6, row * cellSize + cellSize/6,
                     (col+1) * cellSize - cellSize/6, (row+1) * cellSize - cellSize/6);
         }
-        setGrid(grid); // copy the letters into the text cells
+        if (grid != null) {
+            setGrid(grid); // copy the letters into the text cells
+        }
         canvasView.layout(l, t, r, b);
         canvasView.setDimensions(dim, cellSize, cellPath);
     }
@@ -64,8 +66,9 @@ public class CellGridLayout extends RelativeLayout {
         int col = (int) event.getX() / cellSize;
         double dr = (event.getY() - (row + 0.5) * cellSize);
         double dc = (event.getX() - (col + 0.5) * cellSize);
-        if (dr*dr + dc*dc > cellSize*cellSize/9) {
-            // the "hot" area is the circle of radius cellSize/3 inscribed within each cell
+        if (dr*dr + dc*dc > cellSize*cellSize/6) {
+            // the "hot" area is the circle inscribed within each cell with radius 6^(-0.5);
+            // somewhere between 1/2 and 1/3.
             return -1;
         }
         return row * dim + col;
@@ -75,7 +78,7 @@ public class CellGridLayout extends RelativeLayout {
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         int cellIndex = getSelectedCellIndex(event);
         if (cellIndex < 0 || cellIndex >= dim*dim) {
-            return false;
+            return true; // we are interested in subsequent touch events
         }
         switch(event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -86,6 +89,7 @@ public class CellGridLayout extends RelativeLayout {
                 addPath(cellIndex);
                 return true;
         }
+        // up events are handled by the enclosing activity
         return false;
     }
 
@@ -100,17 +104,25 @@ public class CellGridLayout extends RelativeLayout {
     private void addPath(int cellIndex) {
         assert(cellIndex < dim*dim);
         for (int i = pathLength-1; i >= 0; i--) {
-            // this cell is already selected
             if (cellPath[i] == cellIndex) {
-                // TODO: if i == pathLength - 2, then un-select the last cell?
-                // not if we want implement Boggle-style rules
+                // this cell is already selected and we don't allow repetitions
+                return;
+            }
+        }
+        if (pathLength > 0) {
+            int dist = Math.max(
+                    Math.abs((cellPath[pathLength-1]/dim) - (cellIndex / dim)),
+                    Math.abs((cellPath[pathLength-1] % dim) - (cellIndex % dim)));
+            if (dist != 1) {
+                Log.d(DogWord.TAG, String.format("bridge too far: %d->%d", cellPath[pathLength-1], cellIndex));
+                // can only select cells that are 1 away, using the max norm.
                 return;
             }
         }
         cellPath[pathLength++] = (byte) cellIndex;
         cellPath[pathLength] = -1;
         selectCell(cellIndex);
-        canvasView.invalidate(); // TODO: limit area
+        canvasView.invalidate(); // TODO: limit area - only need to redraw the area enclosing the last two cells
     }
 
     public String finishPath() {

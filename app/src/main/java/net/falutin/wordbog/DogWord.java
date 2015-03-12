@@ -145,7 +145,6 @@ public class DogWord extends ActionBarActivity {
                 }
             }
             gridLayout.clearSelection();
-            return true;
         }
         return false;
     }
