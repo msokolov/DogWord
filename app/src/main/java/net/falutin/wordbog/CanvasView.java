@@ -3,9 +3,7 @@ package net.falutin.wordbog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 /**
@@ -53,7 +51,6 @@ public class CanvasView extends View {
             float eps_horz = dh == 0 ? 0 : (dh > 0 ? CAP_EPS : -CAP_EPS);
             int dv = (iCellNext / dim) - (iCell / dim);
             float eps_vert = dv == 0 ? 0 : (dv > 0 ? CAP_EPS : -CAP_EPS);
-            Log.d(DogWord.TAG, "(dh,dv)=(" + dh + "," + dv + ")");
             canvas.drawLine(
                     (iCell % dim + 0.3f - eps_horz) * cellSize,
                     (iCell / dim + 0.3f - eps_vert) * cellSize,

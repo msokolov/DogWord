@@ -1,8 +1,6 @@
 package net.falutin.wordbog;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -76,21 +74,22 @@ public class CellGridLayout extends RelativeLayout {
 
     @Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
+        final int actionMasked = event.getActionMasked();
+        if (actionMasked == MotionEvent.ACTION_UP) {
+            // up events are handled by the enclosing activity; bubble up
+            return false;
+        }
         int cellIndex = getSelectedCellIndex(event);
-        if (cellIndex < 0 || cellIndex >= dim*dim) {
-            return true; // we are interested in subsequent touch events
-        }
-        switch(event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                initPath (cellIndex);
-                return true;
+        if (cellIndex >= 0 && cellIndex < dim*dim) {
+            switch (actionMasked) {
+                case MotionEvent.ACTION_DOWN:
+                    initPath(cellIndex);
 
-            case MotionEvent.ACTION_MOVE:
-                addPath(cellIndex);
-                return true;
+                case MotionEvent.ACTION_MOVE:
+                    addPath(cellIndex);
+            }
         }
-        // up events are handled by the enclosing activity
-        return false;
+        return true;
     }
 
     private void initPath(int cellIndex) {

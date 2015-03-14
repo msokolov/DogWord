@@ -22,8 +22,7 @@ import java.util.HashSet;
  * TODO: create objectives, timing (add score and time for each word found)
  * TODO: More even letter distribution
  * TODO: visual feedback on found word (flash the word brightly), already found word (dim the word)
- * TODO: expand selection area when no path selected
- * TODO: Make a nicer line color, add rounded caps
+ * TODO: handle offscreen drags (treat as up event)?
  */
 public class DogWord extends ActionBarActivity {
 
@@ -47,8 +46,8 @@ public class DogWord extends ActionBarActivity {
         // 7de6e2e0
         //Mint.initAndStartSession(this, "854b552a43ef65ffd873779");
         // Mint.initAndStartSession(DogWord.this, "39338683");
-        // Mint.initAndStartSession(this, "7de6e2e0");
-        // Mint.logEvent("Hello, World!");
+        Mint.initAndStartSession(this, "7de6e2e0");
+        Mint.logEvent("Hello, World!");
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
