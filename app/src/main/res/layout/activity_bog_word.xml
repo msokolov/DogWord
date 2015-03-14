@@ -33,7 +33,10 @@
         <view a:layout_width="match_parent" a:layout_height="300dp"
             class="net.falutin.wordbog.CanvasView"
             a:id="@+id/canvas"
-            a:background="#00000000"/>
+            a:background="#00000000"
+            a:gestureStrokeWidth="5"
+            a:gestureColor="@color/gestureColor"
+            />
 
     </net.falutin.wordbog.CellGridLayout>
 

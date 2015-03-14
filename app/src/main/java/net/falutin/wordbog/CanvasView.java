@@ -19,12 +19,15 @@ public class CanvasView extends View {
     private int cellSize;
     private byte [] cellPath;
 
+    private final static String ANDROID_NS = "http://schemas.android.com/apk/res/android";
+
     public CanvasView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
         paint = new Paint();
-        // TODO: get drawing style from attributes
-        paint.setColor(0xffffffed);
-        paint.setStrokeWidth(5f);
+        final int gestureColorRes = attributeSet.getAttributeResourceValue(ANDROID_NS, "gestureColor", android.R.color.white);
+        paint.setColor(getResources().getColor(gestureColorRes));
+        float gestureStrokeWidth = attributeSet.getAttributeFloatValue(ANDROID_NS, "gestureStrokeWidth", 2f);
+        paint.setStrokeWidth(gestureStrokeWidth);
         // sadly this won't work https://code.google.com/p/android/issues/detail?id=24873
         // but maybe someday?
         paint.setStrokeCap(Paint.Cap.ROUND);

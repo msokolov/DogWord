@@ -14,4 +14,6 @@
         <item name="android:background">@drawable/tile_bg</item>
     </style>
 
+    <color name="gestureColor">#ffffffdd</color>
+
 </resources>

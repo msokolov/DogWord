@@ -57,7 +57,6 @@ public class DogWord extends ActionBarActivity {
         canvasView = (CanvasView) findViewById(R.id.canvas);
         gridLayout.setCanvasView(canvasView);
 
-        // TODO: implement onSaveInstanceState() and save all the stuff there
         try {
             // load the dictionary
             // Our dictionary is WORDS trimmed down to words that occurred at least 500 times
