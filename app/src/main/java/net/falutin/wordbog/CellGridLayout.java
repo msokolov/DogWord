@@ -109,19 +109,34 @@ public class CellGridLayout extends RelativeLayout {
             }
         }
         if (pathLength > 0) {
-            int dist = Math.max(
-                    Math.abs((cellPath[pathLength-1]/dim) - (cellIndex / dim)),
-                    Math.abs((cellPath[pathLength-1] % dim) - (cellIndex % dim)));
-            if (dist != 1) {
-                Log.d(DogWord.TAG, String.format("bridge too far: %d->%d", cellPath[pathLength-1], cellIndex));
-                // can only select cells that are 1 away, using the max norm.
+            if (! invalidateIfValidSelection(cellIndex)) {
                 return;
             }
         }
         cellPath[pathLength++] = (byte) cellIndex;
         cellPath[pathLength] = -1;
         selectCell(cellIndex);
-        canvasView.invalidate(); // TODO: limit area - only need to redraw the area enclosing the last two cells
+    }
+
+    private boolean invalidateIfValidSelection(int cellIndex) {
+        int x0 = cellPath[pathLength - 1] % dim;
+        int y0 = cellPath[pathLength - 1] / dim;
+        int x1 = cellIndex % dim;
+        int y1 = cellIndex / dim;
+        int dist = Math.max(Math.abs(y0 - y1), Math.abs(x0 - x1));
+        if (dist != 1) {
+            Log.d(DogWord.TAG, String.format("bridge too far: %d->%d", cellPath[pathLength-1], cellIndex));
+            // can only select cells that are 1 away, using the max norm.
+            return false;
+        }
+        if (x0 > x1) {
+            int tmp = x0; x0 = x1; x1 = tmp;
+        }
+        if (y0 > y1) {
+            int tmp = y0; y0 = y1; y1 = tmp;
+        }
+        canvasView.invalidate(x0*cellSize, y0*cellSize, (x1+1)*cellSize, (y1+y1) * cellSize);
+        return true;
     }
 
     public String finishPath() {
@@ -131,7 +146,7 @@ public class CellGridLayout extends RelativeLayout {
         }
         pathLength = 0;
         cellPath[0] = -1;
-        canvasView.invalidate(); // TODO: limit area
+        canvasView.invalidate();
         return buf.toString();
     }
 
