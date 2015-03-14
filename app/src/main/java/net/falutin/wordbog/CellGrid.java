@@ -73,4 +73,12 @@ public class CellGrid implements Char2d {
         return height;
     }
 
+    public String toString () {
+        return new String(cells);
+    }
+
+    public void setCells (String cellString) {
+        System.arraycopy(cellString.toCharArray(), 0, cells, 0, width * height);
+    }
+
 }

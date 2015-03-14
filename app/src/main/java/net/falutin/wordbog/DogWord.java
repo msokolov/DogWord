@@ -2,6 +2,7 @@ package net.falutin.wordbog;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import com.splunk.mint.Mint;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 
 /**
@@ -22,7 +24,6 @@ import java.util.HashSet;
  * TODO: create objectives, timing (add score and time for each word found)
  * TODO: More even letter distribution
  * TODO: visual feedback on found word (flash the word brightly), already found word (dim the word)
- * TODO: handle offscreen drags (treat as up event)?
  */
 public class DogWord extends ActionBarActivity {
 
@@ -69,7 +70,54 @@ public class DogWord extends ActionBarActivity {
         }
         wordFinder = new GridWordFinder(words);
         wordsFound = new HashSet<>();
-        onNewGame();
+        if (savedInstanceState != null) {
+            onRestoreGame(savedInstanceState);
+        } else {
+            onNewGame();
+        }
+    }
+
+    public void onNewGame () {
+        CellGrid grid = new CellGrid(4, 4);
+        grid.randomize();
+        gridLayout.setGrid (grid);
+        displayArea.setText("");
+        wordsFound.clear();
+        numWordsToFind = wordFinder.findWords(grid).size();
+        updateProgress();
+        gameOver = false;
+    }
+
+    public void onRestoreGame(Bundle state) {
+        CellGrid grid = new CellGrid(4, 4);
+        grid.setCells(state.getString("grid"));
+        gridLayout.setGrid(grid);
+        String[] wf = state.getStringArray("wordsFound");
+        displayArea.setText(join(", ", wf));
+        wordsFound.addAll(Arrays.asList(wf));
+        numWordsToFind = state.getInt("numWords");
+        gameOver = state.getBoolean("gameOver");
+    }
+
+    private static String join(String by, String[] strings) {
+        if (strings.length == 0) {
+            return "";
+        }
+        StringBuilder statusText = new StringBuilder();
+        statusText.append(strings[0]);
+        for (int i = 1; i < strings.length; i++) {
+            statusText.append(by).append(strings[i]);
+        }
+        return statusText.toString();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("grid", gridLayout.getGrid().toString());
+        outState.putBoolean("gameOver", gameOver);
+        outState.putStringArray("wordsFound", wordsFound.toArray(new String[wordsFound.size()]));
+        outState.putInt("numWords", numWordsToFind);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -105,17 +153,6 @@ public class DogWord extends ActionBarActivity {
     public void onStart () {
         updateProgress();
         super.onStart();
-    }
-
-    public void onNewGame () {
-        CellGrid grid = new CellGrid(4, 4);
-        grid.randomize();
-        gridLayout.setGrid (grid);
-        displayArea.setText("");
-        wordsFound.clear();
-        numWordsToFind = wordFinder.findWords(grid).size();
-        updateProgress();
-        gameOver = false;
     }
 
     public void updateProgress() {
