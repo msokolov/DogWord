@@ -23,7 +23,6 @@ import java.util.Set;
  * TODO: prune dictionary
  * TODO: create objectives, timing (add score and time for each word found)
  * TODO: More even letter distribution - and handle "QU"
- * TODO: visual feedback on found word (flash the word brightly), already found word (dim the word)
  */
 public class DogWord extends ActionBarActivity {
 
@@ -60,7 +59,8 @@ public class DogWord extends ActionBarActivity {
         try {
             // load the dictionary
             // Our dictionary is WORDS trimmed down to words that occurred at least 500 times
-            // in the Google Books corpus in 2008.
+            // in the Google Books corpus in 2008, plus more obscure words, proper names,
+            // abbreviations removed by other means.
             if (words == null) {
                 words = LetterTree.read(new DataInputStream(getResources().openRawResource(R.raw.words)));
             }

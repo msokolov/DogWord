@@ -2,7 +2,6 @@ package net.falutin.wordbog;
 
 import android.content.Context;
 import android.os.Handler;
-import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -152,7 +151,7 @@ public class CellGridLayout extends RelativeLayout {
     public String getSelectedWord () {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < pathLength; i++) {
-            buf.append(grid.get(cellPath[i]));
+            buf.append(getCell(cellPath[i]).getText());
         }
         return buf.toString();
     }
@@ -225,7 +224,14 @@ public class CellGridLayout extends RelativeLayout {
         for (int row = 0; row < grid.height(); row++) {
             for (int col = 0; col < grid.width(); col++) {
                 TextView cell = getCell(row * grid.width() + col);
-                cell.setText(new String(new char[]{grid.get(row, col)}));
+                final char c = grid.get(row, col);
+                if (c == 'Q') {
+                    cell.setText("QU");
+                    cell.setTextScaleX(0.6f);
+                } else {
+                    cell.setText(new String(new char[]{c}));
+                    cell.setTextScaleX(1.0f);
+                }
             }
         }
     }
