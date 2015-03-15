@@ -55,9 +55,8 @@
     </ScrollView>
     <TextView
         a:id="@+id/progress"
-        a:layout_width="96sp"
+        a:layout_width="192sp"
         a:layout_height="48sp"
         a:textColor="#fffff8ce"
         a:background="@android:color/background_dark" />
-
 </LinearLayout>
