@@ -1,7 +1,9 @@
 package net.falutin.wordbog;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v7.app.ActionBarActivity;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,11 +24,14 @@ import java.util.Set;
  * Word search game. Run your finger over the letters and find all the words.
  * TODO: prune dictionary
  * TODO: create objectives, timing (add score and time for each word found)
- * TODO: More even letter distribution - and handle "QU"
+ * TODO: More even letter distribution?
  */
 public class DogWord extends ActionBarActivity {
 
     public static final String TAG = "DogWord";
+
+    private static final int START_MSEC= 3 * 60 * 1000;
+    private static final int MSEC_PER_POINT = 2000;
 
     private CellGridLayout gridLayout;
     private TextView displayArea;
@@ -37,7 +42,9 @@ public class DogWord extends ActionBarActivity {
     private GridWordFinder wordFinder;
     private HashSet<String> wordsFound;
     private int numWordsToFind;
+    private int score;
     private boolean gameOver;
+    private long startTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,10 +86,12 @@ public class DogWord extends ActionBarActivity {
     public void onNewGame () {
         CellGrid grid = new CellGrid(4, 4);
         grid.randomize();
-        gridLayout.setGrid (grid);
+        gridLayout.setGrid(grid);
         displayArea.setText("");
         wordsFound.clear();
         numWordsToFind = wordFinder.findWords(grid).size();
+        score = 0;
+        startTime = System.currentTimeMillis();
         updateProgress();
         gameOver = false;
     }
@@ -96,18 +105,31 @@ public class DogWord extends ActionBarActivity {
         wordsFound.addAll(Arrays.asList(wf));
         numWordsToFind = state.getInt("numWords");
         gameOver = state.getBoolean("gameOver");
+        score = state.getInt("score");
+        int secondsRemaining = state.getInt("secondsRemaining");
+        startTime = System.currentTimeMillis() - secondsRemaining * 1000;
+    }
+
+    private int secondsRemaining () {
+        int totalTime = START_MSEC + MSEC_PER_POINT * score;
+        long now = System.currentTimeMillis();
+        int remaining = (int) (startTime + totalTime - now);
+        if (remaining > 0) {
+            return remaining/1000;
+        }
+        return 0;
     }
 
     private static String join(String by, String[] strings) {
         if (strings.length == 0) {
             return "";
         }
-        StringBuilder statusText = new StringBuilder();
-        statusText.append(strings[0]);
+        StringBuilder buf = new StringBuilder();
+        buf.append(strings[0]);
         for (int i = 1; i < strings.length; i++) {
-            statusText.append(by).append(strings[i]);
+            buf.append(by).append(strings[i]);
         }
-        return statusText.toString();
+        return buf.toString();
     }
 
     @Override
@@ -116,6 +138,8 @@ public class DogWord extends ActionBarActivity {
         outState.putBoolean("gameOver", gameOver);
         outState.putStringArray("wordsFound", wordsFound.toArray(new String[wordsFound.size()]));
         outState.putInt("numWords", numWordsToFind);
+        outState.putInt("score", score);
+        outState.putInt("secondsRemaining", secondsRemaining());
         super.onSaveInstanceState(outState);
     }
 
@@ -150,12 +174,32 @@ public class DogWord extends ActionBarActivity {
     @Override
     public void onStart () {
         updateProgress();
+        createTimer();
         super.onStart();
     }
 
+    private void createTimer() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                updateProgress();
+                int t = secondsRemaining();
+                if (t <= 0) {
+                    onGameOver();
+                } else {
+                    handler.postDelayed(this, 1000);
+                }
+            }
+        }, 1000);
+    }
+
     public void updateProgress() {
-        String status = String.format("%d/%d", wordsFound.size(), numWordsToFind);
-        Log.d(DogWord.TAG, "progress: " + status);
+        int secs = secondsRemaining();
+        int mins = secs / 60;
+        secs = secs % 60;
+        String status = String.format("Score: %d (%d/%d) %02d:%02d", score, wordsFound.size(),
+                numWordsToFind, mins, secs);
         progressArea.setText(status);
     }
 
@@ -178,6 +222,7 @@ public class DogWord extends ActionBarActivity {
                         displayArea.setText(word);
                     }
                     gridLayout.highlightSelection(CellGridLayout.SelectionKind.FOUND);
+                    score += fibonacci (word.length() - 2);
                     updateProgress();
                 }
             } else {
@@ -186,6 +231,16 @@ public class DogWord extends ActionBarActivity {
             gridLayout.clearPath();
         }
         return false;
+    }
+
+    private static int fibonacci (int n) {
+        int sum1 = 1, sum2 = 0;
+        while (n-- > 0) {
+            int tmp = sum1;
+            sum1 += sum2;
+            sum2 = tmp;
+        }
+        return sum1;
     }
 
     private void onGameOver() {
@@ -202,5 +257,7 @@ public class DogWord extends ActionBarActivity {
         }
         scrollView.fullScroll(View.FOCUS_DOWN);
         gridLayout.highlightSelection(CellGridLayout.SelectionKind.NONE);
+        gridLayout.setEnabled(false);
     }
+
 }

@@ -23,6 +23,8 @@ public class CellGridLayout extends RelativeLayout {
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
     private int cellTextColor, gestureColor, alreadyColor;
+    private DogWord activity;
+    private boolean enabled;
 
     public enum SelectionKind {
         FOUND, ALREADY, NONE
@@ -83,6 +85,9 @@ public class CellGridLayout extends RelativeLayout {
 
     @Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
+        if (!enabled) {
+            return false;
+        }
         final int actionMasked = event.getActionMasked();
         if (actionMasked == MotionEvent.ACTION_UP) {
             // up events are handled by the enclosing activity; bubble up
@@ -179,7 +184,6 @@ public class CellGridLayout extends RelativeLayout {
                 break;
         }
         for (int i = 0; i < pathLength; i++) {
-            // TODO cache the resources instead?
             final TextView cell = getCell(cellPath[i]);
             cell.setBackgroundResource(shape);
             cell.setTextColor(color);
@@ -217,6 +221,7 @@ public class CellGridLayout extends RelativeLayout {
 
     public void setGrid(CellGrid grid) {
         this.grid = grid;
+        enabled = true;
         if (cellSize == 0) {
             // onLayout not yet called
             return;
@@ -234,6 +239,14 @@ public class CellGridLayout extends RelativeLayout {
                 }
             }
         }
+    }
+
+    public boolean isEnabled () {
+        return enabled;
+    }
+
+    public void setEnabled (boolean enabled) {
+        this.enabled = enabled;
     }
 
 }
