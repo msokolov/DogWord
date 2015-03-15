@@ -15,5 +15,9 @@
     </style>
 
     <color name="gestureColor">#ffffffdd</color>
+    <color name="foundColor">#ffddffdd</color>
+    <color name="alreadyColor">#ff888888</color>
+    <color name="cellBorderColor">#ffb1bcbe</color>
+    <color name="selectionBGColor">#ff333355</color>
 
 </resources>

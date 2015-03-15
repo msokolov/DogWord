@@ -1,6 +1,8 @@
 package net.falutin.wordbog;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -21,12 +23,20 @@ public class CellGridLayout extends RelativeLayout {
     private CanvasView canvasView;
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
+    private int cellTextColor, gestureColor, alreadyColor;
+
+    public enum SelectionKind {
+        FOUND, ALREADY, NONE
+    }
 
     public CellGridLayout (Context context, AttributeSet attrs) {
         super (context, attrs);
         for (int i = 0; i < cellPath.length; i++) {
             cellPath[i] = -1;
         }
+        gestureColor = getResources().getColor(R.color.gestureColor);
+        alreadyColor = getResources().getColor(R.color.alreadyColor);
+        cellTextColor = getResources().getColor(R.color.primary_text_default_material_light);
     }
 
     @Override
@@ -96,7 +106,7 @@ public class CellGridLayout extends RelativeLayout {
         cellPath[0] = (byte) cellIndex;
         cellPath[1] = -1;
         pathLength = 1;
-        clearSelection();
+        //highlightSelection(SelectionKind.NONE);
         selectCell(cellIndex);
     }
 
@@ -139,21 +149,58 @@ public class CellGridLayout extends RelativeLayout {
         return true;
     }
 
-    public String finishPath() {
+    public String getSelectedWord () {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < pathLength; i++) {
             buf.append(grid.get(cellPath[i]));
         }
-        pathLength = 0;
-        cellPath[0] = -1;
-        canvasView.invalidate();
         return buf.toString();
     }
 
-    public void clearSelection () {
-        for (int i = dim * dim - 1; i >= 0; i--) {
-            getChildAt(i).setBackgroundResource(R.drawable.tile_bg);
+    public void clearPath() {
+        pathLength = 0;
+        cellPath[0] = -1;
+        canvasView.invalidate();
+    }
+
+    public void highlightSelection (SelectionKind sel) {
+        int shape, color;
+        switch (sel) {
+            case NONE: default:
+                color = cellTextColor;
+                shape = R.drawable.tile_bg;
+                break;
+            case FOUND:
+                color = gestureColor;
+                shape = R.drawable.found_tile_bg;
+                break;
+            case ALREADY:
+                color = alreadyColor;
+                shape = R.drawable.tile_bg;
+                break;
         }
+        for (int i = 0; i < pathLength; i++) {
+            // TODO cache the resources instead?
+            final TextView cell = getCell(cellPath[i]);
+            cell.setBackgroundResource(shape);
+            cell.setTextColor(color);
+        }
+        clearSelectionDelayed(200);
+    }
+
+    private void clearSelectionDelayed (int msec) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = dim*dim-1; i >= 0; i--) {
+                    // TODO cache the resources instead?
+                    final TextView cell = getCell(i);
+                    cell.setBackgroundResource(R.drawable.tile_bg);
+                    cell.setTextColor(cellTextColor);
+                }
+                //invalidate();
+            }
+        }, msec);
     }
 
     public void selectCell (int cellIndex) {

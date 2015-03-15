@@ -96,5 +96,6 @@ public class LetterTreeTest {
         assertEquals(3, tree2.lookup("encyclical"));
         assertEquals(2, tree2.lookup("encycli"));
         assertEquals(0, tree2.lookup("encyclion"));
+        assertEquals(0, tree2.lookup("gama"));
     }
 }

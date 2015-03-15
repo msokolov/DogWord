@@ -2,7 +2,6 @@ package net.falutin.wordbog;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,17 +16,18 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Word search game. Run your finger over the letters and find all the words.
  * TODO: prune dictionary
  * TODO: create objectives, timing (add score and time for each word found)
- * TODO: More even letter distribution
+ * TODO: More even letter distribution - and handle "QU"
  * TODO: visual feedback on found word (flash the word brightly), already found word (dim the word)
  */
 public class DogWord extends ActionBarActivity {
 
-    public static final String TAG = "BogWord";
+    public static final String TAG = "DogWord";
 
     private CellGridLayout gridLayout;
     private TextView displayArea;
@@ -139,8 +139,7 @@ public class DogWord extends ActionBarActivity {
                 return true;
             case R.id.game_over:
                 if (!gameOver) {
-                    gameOver = true;
-                    showWordsNotFound();
+                    onGameOver();
                 }
                 return true;
             default:
@@ -166,9 +165,11 @@ public class DogWord extends ActionBarActivity {
             return false;
         }
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-            String word = gridLayout.finishPath();
-            if (word.length() >= 3) {
-                if (words.contains(word.toLowerCase()) && !wordsFound.contains(word)) {
+            String word = gridLayout.getSelectedWord();
+            if (word.length() >= 3 && words.contains(word.toLowerCase())) {
+                if (wordsFound.contains(word)) {
+                    gridLayout.highlightSelection(CellGridLayout.SelectionKind.ALREADY);
+                } else {
                     wordsFound.add(word);
                     if (wordsFound.size() > 1) {
                         displayArea.setText(displayArea.getText() + " " + word);
@@ -176,22 +177,30 @@ public class DogWord extends ActionBarActivity {
                     } else {
                         displayArea.setText(word);
                     }
+                    gridLayout.highlightSelection(CellGridLayout.SelectionKind.FOUND);
                     updateProgress();
                 }
+            } else {
+                gridLayout.highlightSelection(CellGridLayout.SelectionKind.NONE);
             }
-            gridLayout.clearSelection();
+            gridLayout.clearPath();
         }
         return false;
     }
 
-    private void showWordsNotFound() {
+    private void onGameOver() {
+        gameOver = true;
         displayArea.setText(displayArea.getText() + "\n +");
-        for (String word : wordFinder.findWords(gridLayout.getGrid())) {
+        Set<String> wordSet = wordFinder.findWords(gridLayout.getGrid());
+        String[] words = wordSet.toArray(new String[wordSet.size()]);
+        Arrays.sort(words);
+        for (String word : words) {
             word = word.toUpperCase();
             if (!wordsFound.contains(word)) {
                 displayArea.setText(displayArea.getText() + " " + word);
             }
         }
         scrollView.fullScroll(View.FOCUS_DOWN);
+        gridLayout.highlightSelection(CellGridLayout.SelectionKind.NONE);
     }
 }
