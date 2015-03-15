@@ -1,4 +1,4 @@
-package net.falutin.wordbog;
+package net.falutin.dogword;
 
 import java.io.BufferedReader;
 import java.io.IOException;

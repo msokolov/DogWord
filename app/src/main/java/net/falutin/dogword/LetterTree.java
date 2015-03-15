@@ -1,11 +1,8 @@
-package net.falutin.wordbog;
+package net.falutin.dogword;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.util.Arrays;
 
 /**
  * LetterTree provides fast lookup of word prefixes in a compact data structure. It is essentially

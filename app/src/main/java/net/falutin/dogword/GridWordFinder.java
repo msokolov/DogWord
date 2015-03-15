@@ -1,4 +1,4 @@
-package net.falutin.wordbog;
+package net.falutin.dogword;
 import java.util.HashSet;
 import java.util.Set;
 

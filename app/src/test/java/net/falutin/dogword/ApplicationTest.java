@@ -1,4 +1,4 @@
-package net.falutin.wordbog;
+package net.falutin.dogword;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

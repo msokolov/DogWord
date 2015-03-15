@@ -1,4 +1,4 @@
-package net.falutin.wordbog;
+package net.falutin.dogword;
 
 import java.util.Arrays;
 import java.util.LinkedList;

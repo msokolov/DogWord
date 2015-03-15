@@ -1,4 +1,4 @@
-package net.falutin.wordbog;
+package net.falutin.dogword;
 
 /**
  * Created by sokolov on 3/1/2015.
