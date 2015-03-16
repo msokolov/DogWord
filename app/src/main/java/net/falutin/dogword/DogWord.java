@@ -43,6 +43,8 @@ public class DogWord extends ActionBarActivity {
     private int score;
     private boolean gameOver;
     private long startTime;
+    private final Handler handler = new Handler();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,7 @@ public class DogWord extends ActionBarActivity {
         startTime = System.currentTimeMillis();
         updateProgress();
         gameOver = false;
+        createTimer();
     }
 
     public void onRestoreGame(Bundle state) {
@@ -106,6 +109,7 @@ public class DogWord extends ActionBarActivity {
         score = state.getInt("score");
         int secondsRemaining = state.getInt("secondsRemaining");
         startTime = System.currentTimeMillis() - secondsRemaining * 1000;
+        createTimer();
     }
 
     private int secondsRemaining () {
@@ -177,7 +181,6 @@ public class DogWord extends ActionBarActivity {
     }
 
     private void createTimer() {
-        final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
