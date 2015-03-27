@@ -11,18 +11,29 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.splunk.mint.Mint;
+import com.splunk.mint.MintLogLevel;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Word search game. Run your finger over the letters and find all the words.
  * TODO: prune dictionary
- * TODO: create objectives, timing (add score and time for each word found)
+ * TODO: create objectives, timing
+ * TODO: classify words as rare/common
+ *   figure out expected score based on number of available words, rarity of words
+ *   give a rating A-F based on score vs expected score
+ *   learn a handicap
+ *   achievements:
+ *     score over 50, 80, 100, 150
+ *     get a six, seven- or eight+ letter word
  * TODO: More even letter distribution?
+ *   guarantee at least one seven-letter word?
+ * TODO: tablet (responsive) layout
  */
 public class DogWord extends ActionBarActivity {
 
@@ -49,12 +60,11 @@ public class DogWord extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 854b552a43ef65ffd873779
-        // 7de6e2e0
-        //Mint.initAndStartSession(this, "854b552a43ef65ffd873779");
-        // Mint.initAndStartSession(DogWord.this, "39338683");
-        Mint.initAndStartSession(this, "7de6e2e0");
-        Mint.logEvent("Hello, World!");
+        // released:
+        Mint.initAndStartSession(DogWord.this, "39338683");
+        // testing:
+        // Mint.initAndStartSession(this, "7de6e2e0");
+        Mint.logEvent("Start");
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
@@ -245,7 +255,23 @@ public class DogWord extends ActionBarActivity {
     }
 
     private void onGameOver() {
+        if (gameOver) {
+            return;
+        }
         gameOver = true;
+        showRemainingWords();
+        scrollView.fullScroll(View.FOCUS_DOWN);
+        gridLayout.highlightSelection(CellGridLayout.SelectionKind.NONE);
+        gridLayout.setEnabled(false);
+        HashMap<String,Object> report = new HashMap<>();
+        report.put("grid", gridLayout.getGrid().toString());
+        report.put("found", wordsFound);
+        Mint.logEvent("GameOver", MintLogLevel.Info, "grid", gridLayout.toString());
+        Mint.logEvent("GameOver", MintLogLevel.Info, "found", wordsFound.toString());
+        Mint.logEvent("GameOver", MintLogLevel.Info, report);
+    }
+
+    private void showRemainingWords() {
         displayArea.setText(displayArea.getText() + "\n +");
         Set<String> wordSet = wordFinder.findWords(gridLayout.getGrid());
         String[] words = wordSet.toArray(new String[wordSet.size()]);
@@ -256,9 +282,6 @@ public class DogWord extends ActionBarActivity {
                 displayArea.setText(displayArea.getText() + " " + word);
             }
         }
-        scrollView.fullScroll(View.FOCUS_DOWN);
-        gridLayout.highlightSelection(CellGridLayout.SelectionKind.NONE);
-        gridLayout.setEnabled(false);
     }
 
 }

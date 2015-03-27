@@ -41,6 +41,12 @@ public class CellGridLayout extends RelativeLayout {
     }
 
     @Override
+    protected  void onMeasure (int w, int h) {
+        int max = (int) Math.max(w, h);
+        super.onMeasure(max, max);
+    }
+
+    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int size = Math.min(r - l, b - t);
         // The first N^2 children are the grid cells
@@ -58,8 +64,11 @@ public class CellGridLayout extends RelativeLayout {
         if (grid != null) {
             setGrid(grid); // copy the letters into the text cells
         }
-        canvasView.layout(l, t, r, b);
-        canvasView.setDimensions(dim, cellSize, cellPath);
+        if (canvasView != null) {
+            // canvasView will be null in the development studio layout tool
+            canvasView.layout(l, t, r, b);
+            canvasView.setDimensions(dim, cellSize, cellPath);
+        }
     }
 
     public void setCanvasView(CanvasView canvasView) {
