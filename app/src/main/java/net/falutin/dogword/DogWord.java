@@ -3,10 +3,16 @@ package net.falutin.dogword;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Handler;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -38,6 +44,17 @@ public class DogWord extends ActionBarActivity {
 
     public static final String TAG = "DogWord";
 
+    private static final String SCORE_PLAUDITS[] = new String[] {
+            "C- You didn't\n try very\n hard, did you?",
+            "C  I'm sure\n you can find\n more words\n if you try",
+            "C+ Not bad,\n keep practicing",
+            "B- Pretty good",
+            "B+ Nice job!",
+            "A- Excellent,\n you're good at this",
+            "A  Wow,\n that's a game\n to remember!",
+            "A+\n You must be\n some kind of\n genius!"
+    };
+
     private static final int START_MSEC= 3 * 60 * 1000;
     private static final int MSEC_PER_POINT = 2000;
 
@@ -46,15 +63,18 @@ public class DogWord extends ActionBarActivity {
     private TextView progressArea;
     private ScrollView scrollView;
     private CanvasView canvasView;
+    private PopupWindow popup;
+
+    private final Handler handler = new Handler();
+
     private LetterTree words;
     private GridWordFinder wordFinder;
     private HashSet<String> wordsFound;
+
     private int numWordsToFind;
     private int score;
     private boolean gameOver;
     private long startTime;
-    private final Handler handler = new Handler();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +116,12 @@ public class DogWord extends ActionBarActivity {
         CellGrid grid = new CellGrid(4, 4);
         grid.randomize();
         gridLayout.setGrid(grid);
+        gridLayout.clearSelection();
         displayArea.setText("");
+        if (popup != null) {
+            popup.dismiss();
+            popup = null;
+        }
         wordsFound.clear();
         numWordsToFind = wordFinder.findWords(grid).size();
         score = 0;
@@ -173,9 +198,7 @@ public class DogWord extends ActionBarActivity {
                 onNewGame();
                 return true;
             case R.id.game_over:
-                if (!gameOver) {
-                    onGameOver();
-                }
+                onGameOver();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -232,7 +255,7 @@ public class DogWord extends ActionBarActivity {
                         displayArea.setText(word);
                     }
                     gridLayout.highlightSelection(CellGridLayout.SelectionKind.FOUND);
-                    score += fibonacci (word.length() - 2);
+                    score += fibonacci(word.length() - 2);
                     updateProgress();
                 }
             } else {
@@ -259,9 +282,34 @@ public class DogWord extends ActionBarActivity {
         }
         gameOver = true;
         showRemainingWords();
-        scrollView.fullScroll(View.FOCUS_DOWN);
-        gridLayout.highlightSelection(CellGridLayout.SelectionKind.NONE);
-        gridLayout.setEnabled(false);
+        showAchievements();
+        gridLayout.invalidate();
+        fileMintReport();
+    }
+
+    private void showAchievements() {
+        gridLayout.dimGrid();
+        int maxScore = wordFinder.computeMaxScore(gridLayout.getGrid());
+        final String achievement = describeAchievement(score, maxScore);
+        Log.d(DogWord.TAG, achievement);
+
+        LayoutInflater layoutInflater = (LayoutInflater)getBaseContext()
+                .getSystemService(LAYOUT_INFLATER_SERVICE);
+        LinearLayout popupView = (LinearLayout) layoutInflater.inflate(R.layout.popup_window, null);
+        popup = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        ((TextView)popupView.getChildAt(0)).setText(achievement);
+        popup.showAtLocation(gridLayout, Gravity.CENTER, 0, 0);
+    }
+
+    private String describeAchievement (int score, int maxScore) {
+        // assume a normal distribution with mean = maxScore / 2
+        // and variance s.t. 4 std.dev. covers from 0-max
+        return SCORE_PLAUDITS[SCORE_PLAUDITS.length * score / maxScore];
+    }
+
+    private void fileMintReport () {
         HashMap<String,Object> report = new HashMap<>();
         report.put("grid", gridLayout.getGrid().toString());
         report.put("found", wordsFound);
@@ -281,6 +329,8 @@ public class DogWord extends ActionBarActivity {
                 displayArea.setText(displayArea.getText() + " " + word);
             }
         }
+        displayArea.scrollTo(0, 100);
+        scrollView.fullScroll(View.FOCUS_DOWN);
     }
 
 }

@@ -19,6 +19,14 @@ public class GridWordFinder {
         this.minLength = minLength;
     }
 
+    public int computeMaxScore (Char2d grid) {
+        int score = 0;
+        for (String word : findWords(grid)) {
+            score += DogWord.fibonacci(word.length() - 2);
+        }
+        return score;
+    }
+
     public Set<String> findWords (Char2d grid) {
         Set<String> words = new LinkedHashSet<>();
         int size = grid.width() * grid.height();

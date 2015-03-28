@@ -147,7 +147,6 @@ public class CellGridLayout extends RelativeLayout {
         int y1 = cellIndex / dim;
         int dist = Math.max(Math.abs(y0 - y1), Math.abs(x0 - x1));
         if (dist != 1) {
-            Log.d(DogWord.TAG, String.format("bridge too far: %d->%d", cellPath[pathLength-1], cellIndex));
             // can only select cells that are 1 away, using the max norm.
             return false;
         }
@@ -176,39 +175,49 @@ public class CellGridLayout extends RelativeLayout {
     }
 
     public void highlightSelection (SelectionKind sel) {
-        int shape, color;
         switch (sel) {
             case NONE: default:
-                color = cellTextColor;
-                shape = R.drawable.tile_bg;
-                break;
+                drawSelection(R.drawable.tile_bg, cellTextColor);
+                return;
             case FOUND:
-                color = gestureColor;
-                shape = R.drawable.found_tile_bg;
+                drawSelection(R.drawable.found_tile_bg, gestureColor);
                 break;
             case ALREADY:
-                color = alreadyColor;
-                shape = R.drawable.tile_bg;
+                drawSelection(R.drawable.tile_bg, alreadyColor);
                 break;
         }
+        clearSelectionDelayed(200);
+    }
+
+    private void drawSelection(int shape, int color) {
         for (int i = 0; i < pathLength; i++) {
             final TextView cell = getCell(cellPath[i]);
             cell.setBackgroundResource(shape);
             cell.setTextColor(color);
         }
-        clearSelectionDelayed(200);
+    }
+
+    private void drawAllCells(int shape, int color) {
+        for (int i = 0; i < dim*dim; i++) {
+            final TextView cell = getCell(i);
+            cell.setBackgroundResource(shape);
+            cell.setTextColor(color);
+        }
+    }
+
+    public void clearSelection() {
+        drawAllCells(R.drawable.tile_bg, cellTextColor);
+    }
+
+    public void dimGrid() {
+        drawAllCells(R.drawable.found_tile_bg, alreadyColor);
     }
 
     private void clearSelectionDelayed (int msec) {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                for (int i = dim*dim-1; i >= 0; i--) {
-                    final TextView cell = getCell(i);
-                    cell.setBackgroundResource(R.drawable.tile_bg);
-                    cell.setTextColor(cellTextColor);
-                }
-                //invalidate();
+                clearSelection();
             }
         }, msec);
     }
@@ -246,14 +255,6 @@ public class CellGridLayout extends RelativeLayout {
                 }
             }
         }
-    }
-
-    public boolean isEnabled () {
-        return enabled;
-    }
-
-    public void setEnabled (boolean enabled) {
-        this.enabled = enabled;
     }
 
 }

@@ -38,16 +38,17 @@ public class CanvasView extends View {
         this.cellSize = cellSize;
         this.cellPath = cellPath;
     }
-
     @Override
     protected void onDraw(Canvas canvas) {
-        if (cellPath == null || dim == 0) {
-            // not initialized yet?
-            return;
+        if (cellPath != null && dim > 0) {
+            drawGridLines (canvas);
         }
+    }
+
+    private void drawGridLines (Canvas canvas) {
         for (int i = 0; i < cellPath.length - 1; i++) {
             int iCell = cellPath[i], iCellNext = cellPath[i+1];
-            if (iCell < 0 || iCellNext < 0) {
+                if (iCell < 0 || iCellNext < 0) {
                 break;
             }
             int dh = (iCellNext % dim) - (iCell % dim);
