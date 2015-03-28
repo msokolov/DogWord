@@ -23,7 +23,6 @@ public class CellGridLayout extends RelativeLayout {
     private byte[] cellPath = new byte[16];
     private byte pathLength = 0;
     private int cellTextColor, gestureColor, alreadyColor;
-    private DogWord activity;
     private boolean enabled;
 
     public enum SelectionKind {
@@ -42,7 +41,7 @@ public class CellGridLayout extends RelativeLayout {
 
     @Override
     protected  void onMeasure (int w, int h) {
-        int max = (int) Math.max(w, h);
+        int max = Math.max(w, h);
         super.onMeasure(max, max);
     }
 
@@ -205,7 +204,6 @@ public class CellGridLayout extends RelativeLayout {
             @Override
             public void run() {
                 for (int i = dim*dim-1; i >= 0; i--) {
-                    // TODO cache the resources instead?
                     final TextView cell = getCell(i);
                     cell.setBackgroundResource(R.drawable.tile_bg);
                     cell.setTextColor(cellTextColor);

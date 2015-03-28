@@ -1,9 +1,9 @@
 package net.falutin.dogword;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Created by sokolov on 3/1/2015.
+ * Finds all words on a grid
  */
 public class GridWordFinder {
 
@@ -20,7 +20,7 @@ public class GridWordFinder {
     }
 
     public Set<String> findWords (Char2d grid) {
-        HashSet<String> words = new HashSet<>();
+        Set<String> words = new LinkedHashSet<>();
         int size = grid.width() * grid.height();
         StringBuilder chars = new StringBuilder(size);
         assert (size < 32);  // we're using a bitmask in an integer to keep track of visited cells

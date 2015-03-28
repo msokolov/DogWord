@@ -8,7 +8,7 @@ import java.util.Set;
 import static junit.framework.Assert.*;
 
 /**
- * Created by sokolov on 3/1/2015.
+ * Tests for the GridWordFinder
  */
 public class GridWordFinderTest {
 
@@ -31,6 +31,22 @@ public class GridWordFinderTest {
             assertTrue (words.contains(word));
         }
     }
+
+    @Test
+    public void testFindWordsForAppStore () throws IOException {
+        LetterTree tree = LetterTreeTest.readLetterTree(false);
+        TestGrid grid = new TestGrid("MRABSYLHDRNEMEDE");
+        GridWordFinder finder = new GridWordFinder(tree);
+        Set<String> words = finder.findWords(grid);
+        assertEquals (97, words.size());
+        System.out.println(words);
+        int score = 0;
+        for (String word : words) {
+            score += DogWord.fibonacci(word.length()-2);
+        }
+        assertEquals(242, score);
+    }
+
 
     class TestGrid implements Char2d {
         char[] grid = new char[16];

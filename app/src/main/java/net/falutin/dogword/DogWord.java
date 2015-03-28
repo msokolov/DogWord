@@ -33,7 +33,6 @@ import java.util.Set;
  *     get a six, seven- or eight+ letter word
  * TODO: More even letter distribution?
  *   guarantee at least one seven-letter word?
- * TODO: tablet (responsive) layout
  */
 public class DogWord extends ActionBarActivity {
 
@@ -244,7 +243,7 @@ public class DogWord extends ActionBarActivity {
         return false;
     }
 
-    private static int fibonacci (int n) {
+    public static int fibonacci (int n) {
         int sum1 = 1, sum2 = 0;
         while (n-- > 0) {
             int tmp = sum1;
