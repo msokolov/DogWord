@@ -28,10 +28,9 @@ import java.util.Set;
 /**
  * Word search game. Run your finger over the letters and find all the words.
  * TODO: prune dictionary
- * TODO: create objectives, timing
+ * TODO: settings (disable timer, other scoring modes?)
  * TODO: classify words as rare/common
  *   figure out expected score based on number of available words, rarity of words
- *   give a rating A-F based on score vs expected score
  *   learn a handicap
  *   achievements:
  *     score over 50, 80, 100, 150
