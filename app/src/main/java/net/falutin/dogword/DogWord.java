@@ -3,7 +3,6 @@ package net.falutin.dogword;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -62,7 +61,6 @@ public class DogWord extends ActionBarActivity {
     private TextView displayArea;
     private TextView progressArea;
     private ScrollView scrollView;
-    private CanvasView canvasView;
     private PopupWindow popup;
 
     private final Handler handler = new Handler();
@@ -91,8 +89,7 @@ public class DogWord extends ActionBarActivity {
         displayArea = (TextView) findViewById(R.id.display);
         scrollView = (ScrollView) findViewById(R.id.scroller);
         progressArea = (TextView) findViewById(R.id.progress);
-        canvasView = (CanvasView) findViewById(R.id.canvas);
-        gridLayout.setCanvasView(canvasView);
+        gridLayout.setCanvasView((CanvasView) findViewById(R.id.canvas));
 
         try {
             // load the dictionary
@@ -138,8 +135,7 @@ public class DogWord extends ActionBarActivity {
         gridLayout.clearSelection();
         displayArea.setText("");
         if (popup != null) {
-            popup.dismiss();
-            popup = null;
+            dismissPopup();
         }
         wordsFound.clear();
         numWordsToFind = wordFinder.findWords(grid).size();
@@ -309,6 +305,7 @@ public class DogWord extends ActionBarActivity {
             return;
         }
         gameOver = true;
+        stopTimer();
         showRemainingWords();
         showAchievements();
         gridLayout.invalidate();
@@ -318,16 +315,33 @@ public class DogWord extends ActionBarActivity {
     private void showAchievements() {
         gridLayout.dimGrid();
         int maxScore = wordFinder.computeMaxScore(gridLayout.getGrid());
-        final String achievement = describeAchievement(score, maxScore);
-        Log.d(DogWord.TAG, achievement);
+        //Log.d(DogWord.TAG, achievement);
+        showPopup(describeAchievement(score, maxScore));
+    }
+
+    private void showPopup (String text) {
         LayoutInflater layoutInflater = (LayoutInflater)getBaseContext()
                 .getSystemService(LAYOUT_INFLATER_SERVICE);
         LinearLayout popupView = (LinearLayout) layoutInflater.inflate(R.layout.popup_window, null);
         popup = new PopupWindow(popupView,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        ((TextView)popupView.getChildAt(0)).setText(achievement);
+        ((TextView)popupView.getChildAt(0)).setText(text);
+        popup.setTouchable(true);
+        popup.setBackgroundDrawable(getResources().getDrawable(R.drawable.found_tile_bg));
+        popup.setTouchInterceptor(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                dismissPopup();
+                return false;
+            }
+        });
         popup.showAtLocation(gridLayout, Gravity.CENTER, 0, 0);
+    }
+
+    private void dismissPopup() {
+        popup.dismiss();
+        popup = null;
     }
 
     private String describeAchievement (int score, int maxScore) {
