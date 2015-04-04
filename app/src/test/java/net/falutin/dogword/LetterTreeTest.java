@@ -75,6 +75,10 @@ public class LetterTreeTest {
         return LetterTree.build(dlt);
     }
 
+    /** NOTE:
+     * Use this test to generate the binary dictionary file that is bundled with the app,
+     * and then copy from src/test/resource/WORDS.bin to src/main/res/raw/words.bin
+     */
     @Test
     public void testReadWrite() throws IOException {
         LetterTree tree = readLetterTree(true);
