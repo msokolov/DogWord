@@ -45,17 +45,17 @@ public class DogWord extends ActionBarActivity {
     public static final String TAG = "DogWord";
 
     private static final String SCORE_PLAUDITS[] = new String[] {
-            "C- You didn't\n try very\n hard, did you?",
-            "C  I'm sure\n you can find\n more words\n if you try",
-            "C+ Not bad,\n keep practicing",
-            "B- Pretty good",
-            "B+ Nice job!",
-            "A- Excellent,\n you're good at this",
-            "A  Wow,\n that's a game\n to remember!",
-            "A+\n You must be\n some kind of\n genius!"
+            "C- Game Over",
+            "C  Ok",
+            "C+ Fair",
+            "B- Good",
+            "B+ Very Good",
+            "A- Excellent!",
+            "A  Superb!!",
+            "A+ Genius!!!"
     };
 
-    private static final int START_MSEC= 3 * 60 * 1000;
+    private static final int INIT_TIMER_MSEC = 3 * 60 * 1000;
     private static final int MSEC_PER_POINT = 2000;
 
     private CellGridLayout gridLayout;
@@ -66,6 +66,7 @@ public class DogWord extends ActionBarActivity {
     private PopupWindow popup;
 
     private final Handler handler = new Handler();
+    private final Runnable timerCB = createTimerCallback();
 
     private LetterTree words;
     private GridWordFinder wordFinder;
@@ -75,6 +76,7 @@ public class DogWord extends ActionBarActivity {
     private int score;
     private boolean gameOver;
     private long startTime;
+    private int timeSavedMillis; // saved when paused
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +114,23 @@ public class DogWord extends ActionBarActivity {
         }
     }
 
+    @Override
+    public void onResume () {
+        super.onResume();
+        if (timeSavedMillis > 0) {
+            resetStartTime();
+        }
+        updateProgress();
+        startTimer();
+    }
+
+    @Override
+    public void onPause () {
+        super.onPause();
+        stopTimer();
+        timeSavedMillis = millisRemaining();
+    }
+
     public void onNewGame () {
         CellGrid grid = new CellGrid(4, 4);
         grid.randomize();
@@ -126,9 +145,10 @@ public class DogWord extends ActionBarActivity {
         numWordsToFind = wordFinder.findWords(grid).size();
         score = 0;
         startTime = System.currentTimeMillis();
+        timeSavedMillis = -1;
         updateProgress();
         gameOver = false;
-        createTimer();
+        startTimer();
     }
 
     public void onRestoreGame(Bundle state) {
@@ -141,17 +161,25 @@ public class DogWord extends ActionBarActivity {
         numWordsToFind = state.getInt("numWords");
         gameOver = state.getBoolean("gameOver");
         score = state.getInt("score");
-        int secondsRemaining = state.getInt("secondsRemaining");
-        startTime = System.currentTimeMillis() - secondsRemaining * 1000;
-        createTimer();
+        timeSavedMillis = state.getInt("secondsRemaining") * 1000;
+        resetStartTime();
+        startTimer();
     }
 
-    private int secondsRemaining () {
-        int totalTime = START_MSEC + MSEC_PER_POINT * score;
+    private void resetStartTime () {
+        startTime = System.currentTimeMillis() - getTotalTime() + timeSavedMillis;
+    }
+
+    private int getTotalTime () {
+        return INIT_TIMER_MSEC + MSEC_PER_POINT * score;
+    }
+
+    private int millisRemaining () {
+        int totalTime = getTotalTime();
         long now = System.currentTimeMillis();
         int remaining = (int) (startTime + totalTime - now);
         if (remaining > 0) {
-            return remaining/1000;
+            return remaining;
         }
         return 0;
     }
@@ -175,7 +203,7 @@ public class DogWord extends ActionBarActivity {
         outState.putStringArray("wordsFound", wordsFound.toArray(new String[wordsFound.size()]));
         outState.putInt("numWords", numWordsToFind);
         outState.putInt("score", score);
-        outState.putInt("secondsRemaining", secondsRemaining());
+        outState.putInt("millisRemaining", millisRemaining());
         super.onSaveInstanceState(outState);
     }
 
@@ -205,30 +233,30 @@ public class DogWord extends ActionBarActivity {
         }
     }
 
-    @Override
-    public void onStart () {
-        updateProgress();
-        createTimer();
-        super.onStart();
-    }
-
-    private void createTimer() {
-        handler.postDelayed(new Runnable() {
+    private Runnable createTimerCallback () {
+        return new Runnable() {
             @Override
             public void run() {
                 updateProgress();
-                int t = secondsRemaining();
-                if (t <= 0) {
+                if (millisRemaining() <= 0) {
                     onGameOver();
                 } else {
                     handler.postDelayed(this, 1000);
                 }
             }
-        }, 1000);
+        };
+    }
+
+    private void startTimer() {
+        handler.postDelayed(timerCB, 1000);
+    }
+
+    private void stopTimer() {
+        handler.removeCallbacks(timerCB);
     }
 
     public void updateProgress() {
-        int secs = secondsRemaining();
+        int secs = millisRemaining() / 1000;
         int mins = secs / 60;
         secs = secs % 60;
         String status = String.format("Score: %d (%d/%d) %02d:%02d", score, wordsFound.size(),
@@ -277,7 +305,7 @@ public class DogWord extends ActionBarActivity {
     }
 
     private void onGameOver() {
-        if (gameOver) {
+        if (gameOver || isFinishing()) {
             return;
         }
         gameOver = true;
@@ -292,7 +320,6 @@ public class DogWord extends ActionBarActivity {
         int maxScore = wordFinder.computeMaxScore(gridLayout.getGrid());
         final String achievement = describeAchievement(score, maxScore);
         Log.d(DogWord.TAG, achievement);
-
         LayoutInflater layoutInflater = (LayoutInflater)getBaseContext()
                 .getSystemService(LAYOUT_INFLATER_SERVICE);
         LinearLayout popupView = (LinearLayout) layoutInflater.inflate(R.layout.popup_window, null);
