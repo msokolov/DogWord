@@ -20,8 +20,8 @@ public class CellGridLayout extends RelativeLayout {
     private int dim;
     private CellGrid grid;
     private CanvasView canvasView;
-    private byte[] cellPath = new byte[16];
-    private byte pathLength = 0;
+    private byte[] cellPath;
+    private byte pathLength;
     private int cellTextColor, gestureColor, alreadyColor;
     private boolean enabled;
 
@@ -31,9 +31,6 @@ public class CellGridLayout extends RelativeLayout {
 
     public CellGridLayout (Context context, AttributeSet attrs) {
         super (context, attrs);
-        for (int i = 0; i < cellPath.length; i++) {
-            cellPath[i] = -1;
-        }
         gestureColor = getResources().getColor(R.color.gestureColor);
         alreadyColor = getResources().getColor(R.color.alreadyColor);
         cellTextColor = getResources().getColor(R.color.primary_text_default_material_light);
@@ -45,12 +42,21 @@ public class CellGridLayout extends RelativeLayout {
         super.onMeasure(max, max);
     }
 
+    private void createCellPath (int size) {
+        cellPath = new byte[size + 1];
+        for (int i = 0; i < cellPath.length; i++) {
+            cellPath[i] = -1;
+        }
+        pathLength = 0;
+    }
+
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int size = Math.min(r - l, b - t);
         // The first N^2 children are the grid cells
         int childCount = getChildCount();
         dim = (int) Math.sqrt(childCount);
+        createCellPath(dim * dim);
         cellSize = size / dim;
         for (int i = dim * dim - 1; i >= 0; i--) {
             final TextView cell = getCell(i);
