@@ -339,8 +339,10 @@ public class DogWord extends ActionBarActivity {
     }
 
     private void dismissPopup() {
-        popup.dismiss();
-        popup = null;
+        if (popup != null) {
+            popup.dismiss();
+            popup = null;
+        }
     }
 
     private String describeAchievement (int score, int maxScore) {
