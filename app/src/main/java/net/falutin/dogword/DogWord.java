@@ -348,7 +348,7 @@ public class DogWord extends ActionBarActivity {
     private String describeAchievement (int score, int maxScore) {
         // assume a normal distribution with mean = maxScore / 2
         // and variance s.t. 4 std.dev. covers from 0-max
-        return SCORE_PLAUDITS[SCORE_PLAUDITS.length * score / maxScore];
+        return SCORE_PLAUDITS[SCORE_PLAUDITS.length * score / (maxScore + 1)];
     }
 
     private void fileMintReport () {
