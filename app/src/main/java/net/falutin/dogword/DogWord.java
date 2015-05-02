@@ -1,6 +1,9 @@
 package net.falutin.dogword;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Handler;
 import android.view.Gravity;
@@ -71,9 +74,10 @@ public class DogWord extends ActionBarActivity {
 
     private int numWordsToFind;
     private int score;
+    private boolean isTimed;
     private boolean gameOver;
     private long startTime;
-    private int timeSavedMillis; // saved when paused
+    private long elapsedMillis; // saved when paused
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +117,7 @@ public class DogWord extends ActionBarActivity {
     @Override
     public void onResume () {
         super.onResume();
-        if (timeSavedMillis > 0) {
+        if (elapsedMillis > 0) {
             resetStartTime();
         }
         updateProgress();
@@ -124,7 +128,7 @@ public class DogWord extends ActionBarActivity {
     public void onPause () {
         super.onPause();
         stopTimer();
-        timeSavedMillis = millisRemaining();
+        elapsedMillis = elapsedMillis();
     }
 
     public void onNewGame () {
@@ -140,10 +144,16 @@ public class DogWord extends ActionBarActivity {
         numWordsToFind = wordFinder.findWords(grid).size();
         score = 0;
         startTime = System.currentTimeMillis();
-        timeSavedMillis = -1;
+        elapsedMillis = -1;
         updateProgress();
         gameOver = false;
-        startTimer();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        isTimed = sharedPref.getBoolean("pref_enable_timer", true);
+        if (isTimed) {
+            startTimer();
+        } else {
+            stopTimer();
+        }
     }
 
     public void onRestoreGame(Bundle state) {
@@ -156,17 +166,21 @@ public class DogWord extends ActionBarActivity {
         numWordsToFind = state.getInt("numWords");
         gameOver = state.getBoolean("gameOver");
         score = state.getInt("score");
-        timeSavedMillis = state.getInt("secondsRemaining") * 1000;
+        elapsedMillis = state.getInt("elapsedSeconds") * 1000;
         resetStartTime();
         startTimer();
     }
 
     private void resetStartTime () {
-        startTime = System.currentTimeMillis() - getTotalTime() + timeSavedMillis;
+        startTime = System.currentTimeMillis() - elapsedMillis;
     }
 
     private int getTotalTime () {
         return INIT_TIMER_MSEC + MSEC_PER_POINT * score;
+    }
+
+    private long elapsedMillis () {
+        return System.currentTimeMillis() - startTime;
     }
 
     private int millisRemaining () {
@@ -198,7 +212,7 @@ public class DogWord extends ActionBarActivity {
         outState.putStringArray("wordsFound", wordsFound.toArray(new String[wordsFound.size()]));
         outState.putInt("numWords", numWordsToFind);
         outState.putInt("score", score);
-        outState.putInt("millisRemaining", millisRemaining());
+        outState.putInt("elapsedSeconds", (int) (elapsedMillis() / 1000));
         super.onSaveInstanceState(outState);
     }
 
@@ -215,13 +229,18 @@ public class DogWord extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                return true;
             case R.id.new_game:
                 onNewGame();
                 return true;
+            case R.id.pause:
+                // just bring up the launcher (ie home screen)
+                startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME));
+                return true;
             case R.id.game_over:
                 onGameOver();
+                return true;
+            case R.id.action_settings:
+                startActivity(new Intent().setClass(getApplicationContext(), SettingsActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -254,8 +273,14 @@ public class DogWord extends ActionBarActivity {
         int secs = millisRemaining() / 1000;
         int mins = secs / 60;
         secs = secs % 60;
-        String status = String.format("Score: %d (%d/%d) %02d:%02d", score, wordsFound.size(),
-                numWordsToFind, mins, secs);
+        String status;
+        if (isTimed) {
+            status = String.format("Score: %d (%d/%d) %02d:%02d", score, wordsFound.size(),
+                    numWordsToFind, mins, secs);
+        } else {
+            status = String.format("Score: %d (%d/%d)", score, wordsFound.size(),
+                    numWordsToFind);
+        }
         progressArea.setText(status);
     }
 
@@ -304,10 +329,13 @@ public class DogWord extends ActionBarActivity {
             return;
         }
         gameOver = true;
-        stopTimer();
-        showRemainingWords();
+        if (isTimed) {
+            stopTimer();
+        }
         showAchievements();
+        gridLayout.setEnabled(false);
         gridLayout.invalidate();
+        showRemainingWords();
         fileMintReport();
     }
 

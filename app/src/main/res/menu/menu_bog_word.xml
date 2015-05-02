@@ -1,6 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".BogWord">
+    <item android:id="@+id/pause" android:title="Pause" app:showAsAction="always" />
     <item android:id="@+id/game_over" android:title="Done" app:showAsAction="always" />
     <item android:id="@+id/new_game" android:title="New Game" app:showAsAction="always" />
     <item android:id="@+id/action_settings" android:title="@string/action_settings"

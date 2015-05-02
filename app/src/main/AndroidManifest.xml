@@ -6,8 +6,8 @@
         android:allowBackup="true"
         android:icon="@mipmap/dw_launcher"
         android:label="@string/app_name"
-        android:versionCode="5"
-        android:versionName="1.0.4"
+        android:versionCode="6"
+        android:versionName="1.0.5"
         android:theme="@style/AppTheme" >
         <activity
             android:name=".DogWord"
@@ -17,6 +17,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".SettingsActivity" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
 

@@ -47,7 +47,12 @@ public class GridWordFinder {
         }
         visited |= pos;
         char c = grid.get(row, col);
-        letters.append(Character.toLowerCase(c));
+        int startLen = letters.length();
+        if (c == 'Q') {
+            letters.append("qu");
+        } else {
+            letters.append(Character.toLowerCase(c));
+        }
         int wordFound = tree.lookup(letters);
         if (letters.length() >= minLength && (wordFound & LetterTree.IS_WORD) != 0) {
             words.add(letters.toString());
@@ -55,7 +60,7 @@ public class GridWordFinder {
         if (wordFound > 1) {
             findNearbyWords(words, grid, row, col, visited, letters);
         }
-        letters.setLength(letters.length()-1);
+        letters.setLength(startLen);
     }
 
     private void findNearbyWords(Set<String> words, Char2d grid, int row, int col, int visited, StringBuilder letters) {

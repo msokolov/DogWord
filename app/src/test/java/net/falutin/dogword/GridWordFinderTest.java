@@ -47,6 +47,20 @@ public class GridWordFinderTest {
         assertEquals(242, score);
     }
 
+    /**
+     * In live testing, DogWord reported that there were 11 words, but actually found 14
+     * because Q is not being treated as QU
+     * @throws IOException
+     */
+    @Test
+    public void testFindWordsBug() throws IOException {
+        LetterTree tree = LetterTreeTest.readLetterTree(false);
+        TestGrid grid = new TestGrid("AQOWAIIMGUAIILOA");
+        GridWordFinder finder = new GridWordFinder(tree);
+        Set<String> words = finder.findWords(grid);
+        assertEquals (14, words.size());
+        System.out.println(words);
+    }
 
     class TestGrid implements Char2d {
         char[] grid = new char[16];
