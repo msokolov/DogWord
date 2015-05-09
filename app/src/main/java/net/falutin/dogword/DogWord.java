@@ -82,9 +82,9 @@ public class DogWord extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // released:
-        // Mint.initAndStartSession(DogWord.this, "39338683");
+        Mint.initAndStartSession(DogWord.this, "39338683");
         // testing:
-        Mint.initAndStartSession(this, "7de6e2e0");
+        // Mint.initAndStartSession(this, "7de6e2e0");
         Mint.logEvent("Start");
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
