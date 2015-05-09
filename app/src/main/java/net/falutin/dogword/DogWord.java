@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,8 +31,6 @@ import java.util.Set;
 
 /**
  * Word search game. Run your finger over the letters and find all the words.
- * TODO: prune dictionary
- * TODO: settings (disable timer, other scoring modes?)
  * TODO: classify words as rare/common
  *   figure out expected score based on number of available words, rarity of words
  *   learn a handicap
@@ -43,7 +42,7 @@ import java.util.Set;
  */
 public class DogWord extends ActionBarActivity {
 
-    public static final String TAG = "DogWord";
+    public static final String TAG = DogWord.class.getName();
 
     private static final String SCORE_PLAUDITS[] = new String[] {
             "C- Game Over",
@@ -56,7 +55,7 @@ public class DogWord extends ActionBarActivity {
             "A+ Genius!!!"
     };
 
-    private static final int INIT_TIMER_MSEC = 3 * 60 * 1000;
+    private int initTimerMillis = 3 * 60 * 1000;
     private static final int MSEC_PER_POINT = 2000;
 
     private CellGridLayout gridLayout;
@@ -83,9 +82,9 @@ public class DogWord extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // released:
-        Mint.initAndStartSession(DogWord.this, "39338683");
+        // Mint.initAndStartSession(DogWord.this, "39338683");
         // testing:
-        // Mint.initAndStartSession(this, "7de6e2e0");
+        Mint.initAndStartSession(this, "7de6e2e0");
         Mint.logEvent("Start");
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
@@ -115,10 +114,22 @@ public class DogWord extends ActionBarActivity {
     }
 
     @Override
-    public void onResume () {
+    public void onResume() {
         super.onResume();
+        resume();
+    }
+
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        resume();
+    }
+
+    private void resume() {
+        Log.d(TAG, "resume " + elapsedMillis);
         if (elapsedMillis > 0) {
             resetStartTime();
+            elapsedMillis = -1;
         }
         updateProgress();
         startTimer();
@@ -127,8 +138,21 @@ public class DogWord extends ActionBarActivity {
     @Override
     public void onPause () {
         super.onPause();
+        stop();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        stop();
+    }
+
+    private void stop() {
         stopTimer();
-        elapsedMillis = elapsedMillis();
+        if (elapsedMillis < 0) {
+            elapsedMillis = elapsedMillis();
+        }
+        Log.d(TAG, "stop " + elapsedMillis);
     }
 
     public void onNewGame () {
@@ -154,6 +178,7 @@ public class DogWord extends ActionBarActivity {
         } else {
             stopTimer();
         }
+        initTimerMillis = Integer.valueOf(sharedPref.getString("pref_timer_minutes", "3")) * 60 * 1000;
     }
 
     public void onRestoreGame(Bundle state) {
@@ -176,7 +201,7 @@ public class DogWord extends ActionBarActivity {
     }
 
     private int getTotalTime () {
-        return INIT_TIMER_MSEC + MSEC_PER_POINT * score;
+        return initTimerMillis + MSEC_PER_POINT * score;
     }
 
     private long elapsedMillis () {
@@ -252,10 +277,12 @@ public class DogWord extends ActionBarActivity {
             @Override
             public void run() {
                 updateProgress();
-                if (millisRemaining() <= 0) {
-                    onGameOver();
-                } else {
-                    handler.postDelayed(this, 1000);
+                if (isTimed) { // how else did we get here?
+                    if (millisRemaining() <= 0) {
+                        onGameOver();
+                    } else {
+                        handler.postDelayed(this, 1000);
+                    }
                 }
             }
         };
