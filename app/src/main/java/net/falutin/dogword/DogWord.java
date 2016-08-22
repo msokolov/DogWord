@@ -1,5 +1,6 @@
 package net.falutin.dogword;
 
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -255,8 +256,8 @@ public class DogWord extends ActionBarActivity {
                 onNewGame();
                 return true;
             case R.id.pause:
-                // just bring up the launcher (ie home screen)
-                startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME));
+                // hides this activity as if the user pressed the back button
+                onBackPressed();
                 return true;
             case R.id.game_over:
                 onGameOver();
@@ -437,14 +438,16 @@ public class DogWord extends ActionBarActivity {
     // by a string of underscores.
     private String formatWordList(HintStyle hintStyle) {
         StringBuilder buf = new StringBuilder();
+        int seqLen = 0;
         for (String word : gridWords) {
             if (buf.length() != 0) {
                 buf.append(", ");
             }
             if (!wordsFound.contains(word)) {
+                seqLen = 0;
                 switch (hintStyle) {
                     case RevealWord:
-                        buf.append(word);
+                        buf.append('(').append(word).append(')');
                         break;
                     case Length:
                         buf.append("(").append(word.length()).append(")");
@@ -452,7 +455,12 @@ public class DogWord extends ActionBarActivity {
                     case None:
                 }
             } else {
-                buf.append(word);
+                if (hintStyle == HintStyle.RevealWord || seqLen < 3) {
+                    buf.append(word);
+                } else if (seqLen == 3) {
+                    buf.append ("...");
+                }
+                ++seqLen;
             }
         }
         return buf.toString();
