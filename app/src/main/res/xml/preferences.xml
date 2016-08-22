@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="pref_enable_timer"
+        android:title="@string/pref_enable_timer"
+        android:summary="@string/pref_enable_timer_summary"
+        android:defaultValue="true" />
+    <EditTextPreference
+        android:defaultValue="3"
+        android:numeric="integer"
+        android:title="Game Time"
+        android:summary="Enter the number of minutes before the timer finishes your game"
+        android:key="pref_timer_minutes" />
+</PreferenceScreen>

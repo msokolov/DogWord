@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "net.falutin.wordbog"
         minSdkVersion 15
-        targetSdkVersion 21
-        versionCode 8
-        versionName "1.0.7"
+        targetSdkVersion 23
+        versionCode 10
+        versionName "1.0.9"
     }
     buildTypes {
         release {

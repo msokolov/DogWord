@@ -1,5 +1,6 @@
 package net.falutin.dogword;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -241,6 +242,7 @@ public class CellGridLayout extends RelativeLayout {
         return grid;
     }
 
+    @SuppressLint("SetTextI18n")
     public void setGrid(CellGrid grid) {
         this.grid = grid;
         enabled = true;

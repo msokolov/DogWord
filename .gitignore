@@ -14,3 +14,6 @@ build
 .gradle
 .idea
 *.iml
+local.properties
+gradle
+gradlew

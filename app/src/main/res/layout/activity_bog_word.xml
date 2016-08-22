@@ -51,12 +51,12 @@
           a:layout_width="match_parent"
           a:layout_height="wrap_content"
           a:textColor="#fffff8ce"
-          a:background="@android:color/background_dark" />
+          a:background="#00000000" />
     </ScrollView>
     <TextView
         a:id="@+id/progress"
         a:layout_width="192sp"
         a:layout_height="48sp"
         a:textColor="#fffff8ce"
-        a:background="@android:color/background_dark" />
+        a:background="#00000000" />
 </LinearLayout>

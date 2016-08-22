@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.splunk.mint.Mint;
@@ -30,9 +29,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Word search game. Run your finger over the letters and find all the words.
- * TODO: classify words as rare/common
- *   figure out expected score based on number of available words, rarity of words
+ * Word search game. Run your finger over the letters and find all the dictionary.
+ * TODO: classify dictionary as rare/common
+ *   figure out expected score based on number of available dictionary, rarity of dictionary
  *   learn a handicap
  *   achievements:
  *     score over 50, 80, 100, 150
@@ -55,28 +54,37 @@ public class DogWord extends ActionBarActivity {
             "A+ Genius!!!"
     };
 
+    /**
+     * Indicates the method of showing words that have not yet been found. Initially this is None,
+     *
+     */
+    private enum HintStyle {
+        None,
+        Length,
+        RevealWord
+    }
+
     private int initTimerMillis = 3 * 60 * 1000;
     private static final int MSEC_PER_POINT = 2000;
 
     private CellGridLayout gridLayout;
     private TextView displayArea;
     private TextView progressArea;
-    private ScrollView scrollView;
     private PopupWindow popup;
 
     private final Handler handler = new Handler();
     private final Runnable timerCB = createTimerCallback();
 
-    private LetterTree words;
+    private LetterTree dictionary;
     private GridWordFinder wordFinder;
     private HashSet<String> wordsFound;
-
-    private int numWordsToFind;
+    private String[] gridWords;
     private int score;
     private boolean isTimed;
     private boolean gameOver;
     private long startTime;
     private long elapsedMillis; // saved when paused
+    private HintStyle hintStyle = HintStyle.None;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +97,6 @@ public class DogWord extends ActionBarActivity {
         setContentView(R.layout.activity_bog_word);
         gridLayout = (CellGridLayout) findViewById(R.id.grid);
         displayArea = (TextView) findViewById(R.id.display);
-        scrollView = (ScrollView) findViewById(R.id.scroller);
         progressArea = (TextView) findViewById(R.id.progress);
         gridLayout.setCanvasView((CanvasView) findViewById(R.id.canvas));
 
@@ -98,13 +105,13 @@ public class DogWord extends ActionBarActivity {
             // Our dictionary is WORDS trimmed down to words that occurred at least 500 times
             // in the Google Books corpus in 2008, plus more obscure words, proper names,
             // abbreviations removed by other means.
-            if (words == null) {
-                words = LetterTree.read(new DataInputStream(getResources().openRawResource(R.raw.words)));
+            if (dictionary == null) {
+                dictionary = LetterTree.read(new DataInputStream(getResources().openRawResource(R.raw.words)));
             }
         } catch (IOException e) {
             throw new RuntimeException("failed to read dictionary");
         }
-        wordFinder = new GridWordFinder(words);
+        wordFinder = new GridWordFinder(dictionary);
         wordsFound = new HashSet<>();
         if (savedInstanceState != null) {
             onRestoreGame(savedInstanceState);
@@ -165,10 +172,11 @@ public class DogWord extends ActionBarActivity {
             dismissPopup();
         }
         wordsFound.clear();
-        numWordsToFind = wordFinder.findWords(grid).size();
+        gridWords = findAllWords();
         score = 0;
         startTime = System.currentTimeMillis();
         elapsedMillis = -1;
+        hintStyle = HintStyle.None;
         updateProgress();
         gameOver = false;
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -185,13 +193,15 @@ public class DogWord extends ActionBarActivity {
         CellGrid grid = new CellGrid(4, 4);
         grid.setCells(state.getString("grid"));
         gridLayout.setGrid(grid);
+        gridWords = findAllWords();
         String[] wf = state.getStringArray("wordsFound");
-        displayArea.setText(join(", ", wf));
-        wordsFound.addAll(Arrays.asList(wf));
-        numWordsToFind = state.getInt("numWords");
+        if (wf != null) {
+            wordsFound.addAll(Arrays.asList(wf));
+        }
         gameOver = state.getBoolean("gameOver");
         score = state.getInt("score");
         elapsedMillis = state.getInt("elapsedSeconds") * 1000;
+        updateWordList();
         resetStartTime();
         startTimer();
     }
@@ -218,24 +228,11 @@ public class DogWord extends ActionBarActivity {
         return 0;
     }
 
-    private static String join(String by, String[] strings) {
-        if (strings.length == 0) {
-            return "";
-        }
-        StringBuilder buf = new StringBuilder();
-        buf.append(strings[0]);
-        for (int i = 1; i < strings.length; i++) {
-            buf.append(by).append(strings[i]);
-        }
-        return buf.toString();
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("grid", gridLayout.getGrid().toString());
         outState.putBoolean("gameOver", gameOver);
         outState.putStringArray("wordsFound", wordsFound.toArray(new String[wordsFound.size()]));
-        outState.putInt("numWords", numWordsToFind);
         outState.putInt("score", score);
         outState.putInt("elapsedSeconds", (int) (elapsedMillis() / 1000));
         super.onSaveInstanceState(outState);
@@ -279,7 +276,7 @@ public class DogWord extends ActionBarActivity {
                 updateProgress();
                 if (isTimed) { // how else did we get here?
                     if (millisRemaining() <= 0) {
-                        onGameOver();
+                        onTimeExpired();
                     } else {
                         handler.postDelayed(this, 1000);
                     }
@@ -303,10 +300,10 @@ public class DogWord extends ActionBarActivity {
         String status;
         if (isTimed) {
             status = String.format("Score: %d (%d/%d) %02d:%02d", score, wordsFound.size(),
-                    numWordsToFind, mins, secs);
+                    gridWords.length, mins, secs);
         } else {
             status = String.format("Score: %d (%d/%d)", score, wordsFound.size(),
-                    numWordsToFind);
+                    gridWords.length);
         }
         progressArea.setText(status);
     }
@@ -318,17 +315,12 @@ public class DogWord extends ActionBarActivity {
         }
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
             String word = gridLayout.getSelectedWord();
-            if (word.length() >= 3 && words.contains(word.toLowerCase())) {
+            if (word.length() >= 3 && dictionary.contains(word.toLowerCase())) {
                 if (wordsFound.contains(word)) {
                     gridLayout.highlightSelection(CellGridLayout.SelectionKind.ALREADY);
                 } else {
                     wordsFound.add(word);
-                    if (wordsFound.size() > 1) {
-                        displayArea.setText(displayArea.getText() + " " + word);
-                        scrollView.fullScroll(View.FOCUS_DOWN);
-                    } else {
-                        displayArea.setText(word);
-                    }
+                    updateWordList();
                     gridLayout.highlightSelection(CellGridLayout.SelectionKind.FOUND);
                     score += fibonacci(word.length() - 2);
                     updateProgress();
@@ -351,6 +343,18 @@ public class DogWord extends ActionBarActivity {
         return sum1;
     }
 
+    private void onTimeExpired() {
+        if (isTimed) {
+            stopTimer();
+        }
+        if (gameOver || isFinishing()) {
+            return;
+        }
+        showAchievements();
+        hintStyle = HintStyle.Length;
+        updateWordList();
+    }
+
     private void onGameOver() {
         if (gameOver || isFinishing()) {
             return;
@@ -359,17 +363,17 @@ public class DogWord extends ActionBarActivity {
         if (isTimed) {
             stopTimer();
         }
-        showAchievements();
         gridLayout.setEnabled(false);
         gridLayout.invalidate();
-        showRemainingWords();
+        hintStyle = HintStyle.RevealWord;
+        updateWordList();
         fileMintReport();
     }
 
     private void showAchievements() {
         gridLayout.dimGrid();
         int maxScore = wordFinder.computeMaxScore(gridLayout.getGrid());
-        //Log.d(DogWord.TAG, achievement);
+        //Log.d(gWord.TAG, achievement);
         showPopup(describeAchievement(score, maxScore));
     }
 
@@ -415,19 +419,43 @@ public class DogWord extends ActionBarActivity {
         Mint.logEvent("GameOver", MintLogLevel.Info, report);
     }
 
-    private void showRemainingWords() {
-        displayArea.setText(displayArea.getText() + "\n +");
+    private String[] findAllWords () {
         Set<String> wordSet = wordFinder.findWords(gridLayout.getGrid());
         String[] words = wordSet.toArray(new String[wordSet.size()]);
         Arrays.sort(words);
-        for (String word : words) {
-            word = word.toUpperCase();
+        for (int i = 0; i < words.length; i++) {
+            words[i] = words[i].toUpperCase();
+        }
+        return words;
+    }
+
+    private void updateWordList () {
+        displayArea.setText(formatWordList(hintStyle));
+    }
+
+    // return a string listing all the words in alphabetical order, with unfound words represented
+    // by a string of underscores.
+    private String formatWordList(HintStyle hintStyle) {
+        StringBuilder buf = new StringBuilder();
+        for (String word : gridWords) {
+            if (buf.length() != 0) {
+                buf.append(", ");
+            }
             if (!wordsFound.contains(word)) {
-                displayArea.setText(displayArea.getText() + " " + word);
+                switch (hintStyle) {
+                    case RevealWord:
+                        buf.append(word);
+                        break;
+                    case Length:
+                        buf.append("(").append(word.length()).append(")");
+                        break;
+                    case None:
+                }
+            } else {
+                buf.append(word);
             }
         }
-        displayArea.scrollTo(0, 100);
-        scrollView.fullScroll(View.FOCUS_DOWN);
+        return buf.toString();
     }
 
 }

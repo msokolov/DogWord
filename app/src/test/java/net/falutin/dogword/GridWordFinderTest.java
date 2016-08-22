@@ -18,16 +18,16 @@ public class GridWordFinderTest {
         TestGrid grid = new TestGrid("ABCDEFGHIJKLMNOP");
         GridWordFinder finder = new GridWordFinder(tree);
         Set<String> words = finder.findWords(grid);
-        assertEquals (16, words.size());
         for (String word : new String[] { "fie", "fin", "fink", "fino",
-                "glop", "ink", "jin", "jink", "knife", "knop", "kop", "lop", "mink", "nim",
+                "glop", "ink", "knife", "lop", "mink", "nim",
                 "plonk", "pol"}) {
             assertTrue (word + " not found", words.contains(word));
         }
+        assertEquals (12, words.size());
         finder = new GridWordFinder(tree, 4);
         words = finder.findWords(grid);
-        assertEquals (8, words.size());
-        for (String word : new String[] { "fink", "fino", "glop", "jink", "knife", "knop", "mink", "plonk"}) {
+        assertEquals (6, words.size());
+        for (String word : new String[] { "fink", "fino", "glop", "knife", "mink", "plonk"}) {
             assertTrue (words.contains(word));
         }
     }
@@ -38,13 +38,13 @@ public class GridWordFinderTest {
         TestGrid grid = new TestGrid("MRABSYLHDRNEMEDE");
         GridWordFinder finder = new GridWordFinder(tree);
         Set<String> words = finder.findWords(grid);
-        assertEquals (97, words.size());
+        assertEquals (95, words.size());
         System.out.println(words);
         int score = 0;
         for (String word : words) {
             score += DogWord.fibonacci(word.length()-2);
         }
-        assertEquals(242, score);
+        assertEquals(240, score);
     }
 
     /**
