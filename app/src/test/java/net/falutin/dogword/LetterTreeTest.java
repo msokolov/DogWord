@@ -56,7 +56,7 @@ public class LetterTreeTest {
 
     public static String getWordFilePath() {
         final String pwd = System.getProperty("user.dir");
-        return pwd + "/src/test/resources/WORDS500";
+        return pwd + "/app/src/test/resources/WORDS500";
     }
 
     public static LetterTree readLetterTree(boolean collapse) throws IOException {

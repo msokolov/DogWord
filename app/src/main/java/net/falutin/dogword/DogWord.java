@@ -1,6 +1,5 @@
 package net.falutin.dogword;
 
-import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -24,10 +23,7 @@ import com.splunk.mint.MintLogLevel;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Word search game. Run your finger over the letters and find all the dictionary.
@@ -55,16 +51,6 @@ public class DogWord extends ActionBarActivity {
             "A+ Genius!!!"
     };
 
-    /**
-     * Indicates the method of showing words that have not yet been found. Initially this is None,
-     *
-     */
-    private enum HintStyle {
-        None,
-        Length,
-        RevealWord
-    }
-
     private int initTimerMillis = 3 * 60 * 1000;
     private static final int MSEC_PER_POINT = 2000;
 
@@ -78,8 +64,7 @@ public class DogWord extends ActionBarActivity {
 
     private LetterTree dictionary;
     private GridWordFinder wordFinder;
-    private HashSet<String> wordsFound;
-    private String[] gridWords;
+    private GridWords gridWords;
     private int score;
     private boolean isTimed;
     private boolean gameOver;
@@ -113,7 +98,6 @@ public class DogWord extends ActionBarActivity {
             throw new RuntimeException("failed to read dictionary");
         }
         wordFinder = new GridWordFinder(dictionary);
-        wordsFound = new HashSet<>();
         if (savedInstanceState != null) {
             onRestoreGame(savedInstanceState);
         } else {
@@ -172,8 +156,7 @@ public class DogWord extends ActionBarActivity {
         if (popup != null) {
             dismissPopup();
         }
-        wordsFound.clear();
-        gridWords = findAllWords();
+        gridWords = new GridWords(wordFinder, grid);
         score = 0;
         startTime = System.currentTimeMillis();
         elapsedMillis = -1;
@@ -194,10 +177,10 @@ public class DogWord extends ActionBarActivity {
         CellGrid grid = new CellGrid(4, 4);
         grid.setCells(state.getString("grid"));
         gridLayout.setGrid(grid);
-        gridWords = findAllWords();
+        gridWords = new GridWords(wordFinder, grid);
         String[] wf = state.getStringArray("wordsFound");
         if (wf != null) {
-            wordsFound.addAll(Arrays.asList(wf));
+            gridWords.addFoundWords(wf);
         }
         gameOver = state.getBoolean("gameOver");
         score = state.getInt("score");
@@ -233,7 +216,7 @@ public class DogWord extends ActionBarActivity {
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("grid", gridLayout.getGrid().toString());
         outState.putBoolean("gameOver", gameOver);
-        outState.putStringArray("wordsFound", wordsFound.toArray(new String[wordsFound.size()]));
+        outState.putStringArray("wordsFound", gridWords.getWordsFound());
         outState.putInt("score", score);
         outState.putInt("elapsedSeconds", (int) (elapsedMillis() / 1000));
         super.onSaveInstanceState(outState);
@@ -300,11 +283,11 @@ public class DogWord extends ActionBarActivity {
         secs = secs % 60;
         String status;
         if (isTimed) {
-            status = String.format("Score: %d (%d/%d) %02d:%02d", score, wordsFound.size(),
-                    gridWords.length, mins, secs);
+            status = String.format("Score: %d (%d/%d) %02d:%02d", score, gridWords.getNumFound(),
+                    gridWords.getSize(), mins, secs);
         } else {
-            status = String.format("Score: %d (%d/%d)", score, wordsFound.size(),
-                    gridWords.length);
+            status = String.format("Score: %d (%d/%d)", score, gridWords.getNumFound(),
+                    gridWords.getSize());
         }
         progressArea.setText(status);
     }
@@ -317,10 +300,10 @@ public class DogWord extends ActionBarActivity {
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
             String word = gridLayout.getSelectedWord();
             if (word.length() >= 3 && dictionary.contains(word.toLowerCase())) {
-                if (wordsFound.contains(word)) {
+                if (gridWords.isFound(word)) {
                     gridLayout.highlightSelection(CellGridLayout.SelectionKind.ALREADY);
                 } else {
-                    wordsFound.add(word);
+                    gridWords.addFound(word);
                     updateWordList();
                     gridLayout.highlightSelection(CellGridLayout.SelectionKind.FOUND);
                     score += fibonacci(word.length() - 2);
@@ -414,56 +397,12 @@ public class DogWord extends ActionBarActivity {
     private void fileMintReport () {
         HashMap<String,Object> report = new HashMap<>();
         report.put("grid", gridLayout.getGrid().toString());
-        report.put("found", wordsFound);
         Mint.logEvent("GameOver", MintLogLevel.Info, "grid", gridLayout.toString());
-        Mint.logEvent("GameOver", MintLogLevel.Info, "found", wordsFound.toString());
         Mint.logEvent("GameOver", MintLogLevel.Info, report);
     }
 
-    private String[] findAllWords () {
-        Set<String> wordSet = wordFinder.findWords(gridLayout.getGrid());
-        String[] words = wordSet.toArray(new String[wordSet.size()]);
-        Arrays.sort(words);
-        for (int i = 0; i < words.length; i++) {
-            words[i] = words[i].toUpperCase();
-        }
-        return words;
-    }
-
     private void updateWordList () {
-        displayArea.setText(formatWordList(hintStyle));
-    }
-
-    // return a string listing all the words in alphabetical order, with unfound words represented
-    // by a string of underscores.
-    private String formatWordList(HintStyle hintStyle) {
-        StringBuilder buf = new StringBuilder();
-        int seqLen = 0;
-        for (String word : gridWords) {
-            if (buf.length() != 0) {
-                buf.append(", ");
-            }
-            if (!wordsFound.contains(word)) {
-                seqLen = 0;
-                switch (hintStyle) {
-                    case RevealWord:
-                        buf.append('(').append(word).append(')');
-                        break;
-                    case Length:
-                        buf.append("(").append(word.length()).append(")");
-                        break;
-                    case None:
-                }
-            } else {
-                if (hintStyle == HintStyle.RevealWord || seqLen < 3) {
-                    buf.append(word);
-                } else if (seqLen == 3) {
-                    buf.append ("...");
-                }
-                ++seqLen;
-            }
-        }
-        return buf.toString();
+        displayArea.setText(gridWords.formatWordList(hintStyle, 1));
     }
 
 }
