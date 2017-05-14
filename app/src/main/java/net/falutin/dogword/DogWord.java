@@ -24,6 +24,7 @@ import com.splunk.mint.MintLogLevel;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Word search game. Run your finger over the letters and find all the dictionary.
@@ -38,7 +39,7 @@ import java.util.HashMap;
  */
 public class DogWord extends ActionBarActivity {
 
-    public static final String TAG = DogWord.class.getName();
+    static final String TAG = DogWord.class.getName();
 
     private static final String SCORE_PLAUDITS[] = new String[] {
             "C- Game Over",
@@ -147,7 +148,7 @@ public class DogWord extends ActionBarActivity {
         Log.d(TAG, "stop " + elapsedMillis);
     }
 
-    public void onNewGame () {
+    private void onNewGame () {
         CellGrid grid = new CellGrid(4, 4);
         grid.randomize();
         gridLayout.setGrid(grid);
@@ -173,7 +174,7 @@ public class DogWord extends ActionBarActivity {
         initTimerMillis = Integer.valueOf(sharedPref.getString("pref_timer_minutes", "3")) * 60 * 1000;
     }
 
-    public void onRestoreGame(Bundle state) {
+    private void onRestoreGame(Bundle state) {
         CellGrid grid = new CellGrid(4, 4);
         grid.setCells(state.getString("grid"));
         gridLayout.setGrid(grid);
@@ -277,16 +278,18 @@ public class DogWord extends ActionBarActivity {
         handler.removeCallbacks(timerCB);
     }
 
-    public void updateProgress() {
+    private void updateProgress() {
         int secs = millisRemaining() / 1000;
         int mins = secs / 60;
         secs = secs % 60;
         String status;
         if (isTimed) {
-            status = String.format("Score: %d (%d/%d) %02d:%02d", score, gridWords.getNumFound(),
+            status = String.format(Locale.ENGLISH,
+                    "Score: %d (%d/%d) %02d:%02d", score, gridWords.getNumFound(),
                     gridWords.getSize(), mins, secs);
         } else {
-            status = String.format("Score: %d (%d/%d)", score, gridWords.getNumFound(),
+            status = String.format(Locale.ENGLISH,
+                    "Score: %d (%d/%d)", score, gridWords.getNumFound(),
                     gridWords.getSize());
         }
         progressArea.setText(status);
@@ -317,7 +320,7 @@ public class DogWord extends ActionBarActivity {
         return false;
     }
 
-    public static int fibonacci (int n) {
+    static int fibonacci(int n) {
         int sum1 = 1, sum2 = 0;
         while (n-- > 0) {
             int tmp = sum1;

@@ -1,0 +1,62 @@
+<LinearLayout xmlns:a="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    a:layout_width="match_parent"
+    a:layout_height="match_parent"
+    a:paddingLeft="@dimen/activity_horizontal_margin"
+    a:paddingRight="@dimen/activity_horizontal_margin"
+    a:paddingTop="@dimen/activity_vertical_margin"
+    a:paddingBottom="@dimen/activity_vertical_margin"
+    a:orientation="horizontal"
+    tools:context=".DogWord"
+    a:background="@android:color/background_dark">
+    <net.falutin.dogword.CellGridLayout
+        a:layout_width="wrap_content"
+        a:layout_height="match_parent"
+        a:id="@+id/grid">
+        <!-- Note: must have NxN text views as first children -->
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <TextView style="@style/Tile" />
+        <view a:layout_width="match_parent" a:layout_height="match_parent"
+            class="net.falutin.dogword.CanvasView"
+            a:id="@+id/canvas"
+            a:background="#00000000"
+            a:gestureStrokeWidth="5"
+            a:gestureColor="@color/gestureColor"
+            />
+
+    </net.falutin.dogword.CellGridLayout>
+
+    <ScrollView
+        a:id="@+id/scroller"
+        a:layout_width="fill_parent"
+        a:layout_height="96sp"
+        a:scrollbars="vertical"
+        a:fillViewport="true">
+      <TextView
+          a:id="@+id/display"
+          a:layout_width="match_parent"
+          a:layout_height="wrap_content"
+          a:textColor="#fffff8ce"
+          a:background="#00000000" />
+    </ScrollView>
+    <TextView
+        a:id="@+id/progress"
+        a:layout_width="192sp"
+        a:layout_height="48sp"
+        a:textColor="#fffff8ce"
+        a:background="#00000000" />
+</LinearLayout>
